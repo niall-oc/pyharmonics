@@ -2,9 +2,6 @@
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-py-modules = ["pyharmonics"]
-
 [project]
 name = "pyharmonics"
 requires-python = ">=3.7"
