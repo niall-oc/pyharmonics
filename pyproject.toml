@@ -16,14 +16,17 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
-    "pandas",
-    "pytest",
-    "ta",
-    "pyyaml",
-    "mongoengine",
-    "yfinance",
-    "kaleido",
-    "pillow"
+    "kaleido==0.2.1",
+    "numpy==1.24.2",
+    "pandas==2.0.0",
+    "Pillow==9.5.0",
+    "plotly==5.14.1",
+    "pyaml==21.10.1",
+    "pymongo==4.3.3",
+    "pytest==7.3.0",
+    "PyYAML==6.0",
+    "requests==2.28.2",
+    "yfinance"
 ]
