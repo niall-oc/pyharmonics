@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["pyharmonics"]
+
+[project]
+name = "pyharmonics"
+requires-python = ">=3.7"
+authors = [
+  { name="Niall O'Connor", email="zechs.marquie@gmail.com" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+version = "0.0.1"
+dependencies = [
+    "pandas",
+    "pytest",
+    "ta",
+    "pyyaml",
+    "mongoengine",
+    "yfinance",
+    "kaleido",
+    "pillow"
+]
