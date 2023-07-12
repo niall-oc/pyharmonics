@@ -1,6 +1,6 @@
-from pyharmonics.market_data.base import MarketData
+from pyharmonics.marketdata.candle_base import CandleData
 import pytest
 
-def test_example():
+def test_marketdata():
     with pytest.raises(TypeError):
-        m = MarketData()
+        m = CandleData()

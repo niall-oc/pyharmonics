@@ -19,3 +19,11 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 version = "0.0.8.2"
+dependencies = [
+    "pandas",
+    "binance-connector",
+    "pytest",
+    "pyyaml",
+    "yfinance",
+    "alpaca-trade-api"
+]
