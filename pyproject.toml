@@ -18,7 +18,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-version = "0.0.8.2"
+version = "0.0.1.0"
 dependencies = [
     "pandas",
     "binance-connector",
