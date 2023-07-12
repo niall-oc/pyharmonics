@@ -27,3 +27,11 @@ index
 ```
 All candle data classes support MIN_1, MIN_5, MIN_15, HOUR_1, DAY_1, WEEK_1, MONTH_1, MONTH_3 time horizons.
 BinanceCandleData and AplacaCandleData also support HOUR_2, HOUR_4, HOUR_8, MIN_3
+
+## CandleData that requires api keys.
+```
+>>> from pyharmonics.marketdata import AlpacaCandleData
+>>> key = dict('api'='whatever', 'secret'='whatever')
+>>> a = AlpacaCandleData(key)
+```
+Alpaca requires a dictionary with both a key and secret. Binance and Yahoo do not.  Binance can accep an API key if you have created one.  Order placement on any API requires a KEY but is not covered by this API.
