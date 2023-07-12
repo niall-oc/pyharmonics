@@ -112,8 +112,8 @@ class AlpacaCandleData(CandleData):
             # If an epoch is given with decimals simply cast of the decimals
             return datetime.date.fromtimestamp(int(t))
         elif isinstance(t, (datetime.datetime,)):
-            # Date time must be converted to epoch and bumped up 1000 fold to become milliseconds as required by binance
-            return t
+            # Date time must be converted to epoch
+            return t.timestamp()
         else:
             raise ValueError('alpaca date must be datetime or timestamp')
 
