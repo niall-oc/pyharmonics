@@ -23,7 +23,7 @@ class AlpacaCandleData(CandleData):
     """
     # Critical Binance will not return more than 1000 candles of data per call.
     MAX_CANDLES = 1000
-    source = 'Alpaca'
+    SOURCE = 'Alpaca'
     INTERVALS = {
         CandleData.MIN_1: TimeFrame(1, TimeFrameUnit.Minute),
         CandleData.MIN_3: TimeFrame(3, TimeFrameUnit.Minute),

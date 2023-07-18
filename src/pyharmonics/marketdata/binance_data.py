@@ -20,7 +20,7 @@ class BinanceCandleData(CandleData):
     """
     # Critical Binance will not return more than 1000 candles of data per call.
     MAX_CANDLES = 1000
-    source = 'Binance'
+    SOURCE = 'Binance'
     INTERVALS = {
         CandleData.MIN_1: '1m',
         CandleData.MIN_3: '3m',

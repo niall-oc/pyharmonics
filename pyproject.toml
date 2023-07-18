@@ -25,5 +25,6 @@ dependencies = [
     "pytest",
     "pyyaml",
     "yfinance",
-    "alpaca-trade-api"
+    "alpaca-trade-api",
+    "ta"
 ]
