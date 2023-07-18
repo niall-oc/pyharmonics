@@ -36,6 +36,7 @@ CandleData that requires api keys.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. code-block:: python
     :linenos:
+
     >>> from pyharmonics.marketdata import AlpacaCandleData
     >>> key = dict('api'='whatever', 'secret'='whatever')
     >>> a = AlpacaCandleData(key)
@@ -46,6 +47,7 @@ Using the Technicals object on OHLC Data
 ----------------------------------------
 .. code-block:: python
     :linenos:
+
     >>> from pyharmonics.marketdata import BinanceCandleData
     >>> from pyharmonics.technicals import Technicals
     >>> b = BinanceCandleData()
@@ -57,10 +59,12 @@ Using the Technicals object on OHLC Data
     ValueError: Candle DataFrame is None! call cd.get_candles(ASSET, INTERVAL) first.
 
 .. note::
+
     Always remember to get candle data :-)
 
 .. code-block:: python
     :linenos:
+
     >>> b.get_candles('ETHUSDT', b.HOUR_4, 400)
     >>> b.df
                                 open     high      low    close      volume  close_time                       dts
@@ -102,6 +106,7 @@ Technicals.df schema
 ~~~~~~~~~~~~~~~~~~~~
 .. code-block:: python
     :linenos:
+    
     >>> t.df.columns
     Index(['open', 'high', 'low', 'close', 'volume', 'close_time', 'dts', 'macd',
         'rsi', 'stoch_rsi', 'bb%', 'sma 50', 'sma 100', 'sma 150', 'sma 200',
