@@ -3,6 +3,8 @@ pyharmonics
 
 pyharmonics detects harmonic patterns in OHLC candle data for any stock or crypto asset.  See http://www.harmonictrader.com for more information.
 
+
+
 Market data usage
 -----------------
 .. code-block:: python
@@ -40,8 +42,11 @@ CandleData that requires api keys.
     >>> from pyharmonics.marketdata import AlpacaCandleData
     >>> key = dict('api'='whatever', 'secret'='whatever')
     >>> a = AlpacaCandleData(key)
+    >>> a.get_candles('QQQ', y.MIN_5, 300)
 
 Alpaca requires a dictionary with both a key and secret. Binance and Yahoo do not.  Binance can accep an API key if you have created one.  Order placement on any API requires a KEY but is not covered by this API.
+
+
 
 Using the Technicals object on OHLC Data
 ----------------------------------------
@@ -119,3 +124,47 @@ Technicals.df schema
 * ```'sma 50', 'sma 100', 'sma 150', 'sma 200'``` are Simple Moving Avergaes SMA.  50, 100, 150, 200 candle average.  All useful for plotting support/resistance levels.
 * ```'ema 5', 'ema 8', 'ema_13', 'ema 21', 'ema 34', 'ema 55'``` are Exponential moving averages all fibonacci numbers.  Very accurate in plotting support/resistance as swings move.
 * ```'price_peaks', 'price_dips', 'macd_peaks', 'macd_dips', 'rsi_peaks', 'rsi_dips'``` the indexes where the price is at a peak or dip.  Similar for the MACD and RSI.  This informatoin is key for detecting divergence patterns which confirm harmonic patterns.
+
+
+
+Harmonic Searches
+-----------------
+Harmonic searches are searches for ABC, ABCD or XABCD patterns.  On the final point of the pattern a price reversal is more likely to occur.
+
+.. code-block:: python
+    :linenos:
+    
+    >>> from pyharmonics.marketdata import BinanceCandleData
+    >>> from pyharmonics.search import MatrixSearch
+    >>> from pyharmonics.technicals import Technicals
+    >>> b = BinanceCandleData()
+    >>> b.get_candles('ETHUSDT', b.HOUR_4, 400)
+    >>> t = Technicals(b.df)
+    >>> m = MatrixSearch(t)
+    >>> m.search()
+    >>> patterns = m.get_patterns()
+    >>> patterns['XABCD']
+    []
+    >>> patterns['ABCD']
+    [ABCDPattern(name='ABCD-50-1.618', formed=True, retraces={'ABC': 0.5000347246336551, 'BCD': 3.31138888888889, 'ABCD': 3.31138888888889}, bullish=False, x=[Timestamp('2023-06-15 12:59:59+0100', tz='Europe/Dublin'), Timestamp('2023-06-17 08:59:59+0100', tz='Europe/Dublin'), Timestamp('2023-06-19 20:59:59+0100', tz='Europe/Dublin'), Timestamp('2023-06-23 20:59:59+0100', tz='Europe/Dublin')], y=[1626.01, 1770.0, 1698.0, 1936.42], abc_extensions=[1936.42], completion_min_price=1930.992, completion_max_price=1930.992)]
+    >>> patterns['ABCD'][0]
+    ABCDPattern(name='ABCD-50-1.618', formed=True, retraces={'ABC': 0.5000347246336551, 'BCD': 3.31138888888889, 'ABCD': 3.31138888888889}, bullish=False, x=[Timestamp('2023-06-15 12:59:59+0100', tz='Europe/Dublin'), Timestamp('2023-06-17 08:59:59+0100', tz='Europe/Dublin'), Timestamp('2023-06-19 20:59:59+0100', tz='Europe/Dublin'), Timestamp('2023-06-23 20:59:59+0100', tz='Europe/Dublin')], y=[1626.01, 1770.0, 1698.0, 1936.42], abc_extensions=[1936.42], completion_min_price=1930.992, completion_max_price=1930.992)
+    >>> patterns['ABC'][0]
+    ABCPattern(name=0.382, formed=True, retraces={'ABC': 0.386628628131977}, bullish=True, x=[Timestamp('2023-06-15 12:59:59+0100', tz='Europe/Dublin'), Timestamp('2023-07-14 04:59:59+0100', tz='Europe/Dublin'), Timestamp('2023-07-17 20:59:59+0100', tz='Europe/Dublin')], y=[1626.01, 2029.11, 1873.26], abc_extensions=[1873.26], completion_min_price=1873.26, completion_max_price=1873.26)
+    >>> 
+
+Here we can see a single ABCD pattern formed on ETHUSDT. Its completion time was ``Timestamp('2023-06-23 20:59:59+0100', tz='Europe/Dublin')``.  Data can be specifically referenced from the pattern object.
+
+.. code-block:: python
+    :linenos:
+    
+    >>> p = patterns['ABC'][0]
+    >>> p.name
+    0.382
+    >>> p.x
+    [Timestamp('2023-06-15 12:59:59+0100', tz='Europe/Dublin'), Timestamp('2023-07-14 04:59:59+0100', tz='Europe/Dublin'), Timestamp('2023-07-17 20:59:59+0100', tz='Europe/Dublin')]
+    >>> p.y
+    [1626.01, 2029.11, 1873.26]
+    >>> 
+
+As you can no doubt tell this information can be plotted with ``b.df`` to show you where the pattern is on the chart. 
