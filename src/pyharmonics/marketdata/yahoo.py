@@ -20,7 +20,7 @@ class YahooCandleData(CandleData):
     # All candle data from 21st of march 2020 until present
     """
     MAX_CANDLES = 10000
-    source = 'Yahoo'
+    SOURCE = 'Yahoo'
     SHORT_INTERVALS = {'m': 1440, 'h': 24, 'd': 1}  # Bring hours or minutes to days
     LONG_INTERVALS = {'w': 4, 'M': 1}  # Bring Weeks or months to months
     INTERVALS = {

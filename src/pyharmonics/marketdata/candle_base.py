@@ -7,6 +7,7 @@ Created on Mon Nov  1 17:02:46 2021
 """
 import abc
 import datetime
+from pyharmonics import constants
 
 class InvalidTimeframe(Exception):
     pass
@@ -17,33 +18,33 @@ class CandleData(abc.ABC):
     This dataframe uses DateTime as the index and
     [OPEN, HIGH, LOW, CLOSE, VOLUME] as column headers.
     """
-    DTS = 'dts'
-    CLOSE_TIME = 'close_time'
-    OPEN = 'open'
-    LOW = 'close'
-    HIGH = 'high'
-    CLOSE = 'close'
-    VOLUME = 'volume'
-    INDEX = 'index'
+    DTS = constants.DTS
+    CLOSE_TIME = constants.CLOSE_TIME
+    OPEN = constants.OPEN
+    LOW = constants.LOW
+    HIGH = constants.HIGH
+    CLOSE = constants.CLOSE
+    VOLUME = constants.VOLUME
+    INDEX = constants.INDEX
     COLUMNS = [OPEN, HIGH, LOW, CLOSE, VOLUME, CLOSE_TIME, DTS]
-    MIN_1 = "1m"
-    MIN_3 = "3m"
-    MIN_5 = "5m"
-    MIN_10 = "10m"
-    MIN_15 = "15m"
-    MIN_30 = "30m"
-    MIN_45 = "45m"
-    HOUR_1 = "1h"
-    HOUR_2 = "2h"
-    HOUR_4 = "4h"
-    HOUR_8 = "8h"
-    DAY_1 = "1d"
-    DAY_3 = "3d"
-    WEEK_1 = "1w"
-    MONTH_1 = "1M"
-    MONTH_3 = "3M"
-    MONTH_6 = "6M"
-    source = None
+    MIN_1 = constants.MIN_1
+    MIN_3 = constants.MIN_3
+    MIN_5 = constants.MIN_5
+    MIN_10 = constants.MIN_10
+    MIN_15 = constants.MIN_15
+    MIN_30 = constants.MIN_30
+    MIN_45 = constants.MIN_45
+    HOUR_1 = constants.HOUR_1
+    HOUR_2 = constants.HOUR_2
+    HOUR_4 = constants.HOUR_4
+    HOUR_8 = constants.HOUR_8
+    DAY_1 = constants.DAY_1
+    DAY_3 = constants.DAY_3
+    WEEK_1 = constants.WEEK_1
+    MONTH_1 = constants.MONTH_1
+    MONTH_3 = constants.MONTH_3
+    MONTH_6 = constants.MONTH_6
+    SOURCE = None
 
     def reset_index(self, index=None):
         if index in (self.CLOSE_TIME, self.DTS,):
