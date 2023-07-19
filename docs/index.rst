@@ -3,10 +3,16 @@ pyharmonics
 
 pyharmonics detects harmonic patterns in OHLC candle data for any stock or crypto asset.  See http://www.harmonictrader.com for more information.
 
+Bullish patterns that have fully formed are green, bullish patterns that are still forming are yellow.
+Bearish patterns that have fully formed are red, bearish patterns that are still forming are purple.
 
+.. warning::
+    pyharmonics is not financial advice.  It is a tool for detecting harmonic price levels or indicator divergences for an assets price trend.  Any decision taken to enter a trade on any asset is entirely yours. No risk is assumed by this API.
 
-Market data usage
------------------
+Market data
+-----------
+pyharmonics work on pandas DataFrame objects.  You can create your own.  The schema required is shown below.
+
 .. code-block:: python
     :linenos:
 
@@ -14,25 +20,26 @@ Market data usage
     >>> y = YahooCandleData()
     >>> y.get_candles('MSFT', y.MIN_5, 300)
     >>> y.df
-                                    open        high       close       close  volume  close_time                       dts
+                                    open        high       close       close  volume
     index                                                                                                                  
-    2023-07-06 18:15:00+01:00  342.410004  342.880005  342.858093  342.858093  299423  1688663700 2023-07-06 18:15:00+01:00
-    2023-07-06 18:20:00+01:00  342.859985  342.989990  342.825012  342.825012  186800  1688664000 2023-07-06 18:20:00+01:00
-    2023-07-06 18:25:00+01:00  342.829987  342.829987  342.029999  342.029999  253544  1688664300 2023-07-06 18:25:00+01:00
-    2023-07-06 18:30:00+01:00  342.045013  342.109985  341.720001  341.720001  236668  1688664600 2023-07-06 18:30:00+01:00
-    2023-07-06 18:35:00+01:00  341.779907  342.140015  342.089996  342.089996  190417  1688664900 2023-07-06 18:35:00+01:00
-    ...                               ...         ...         ...         ...     ...         ...                       ...
-    2023-07-12 16:50:00+01:00  336.829987  336.869995  336.390015  336.390015  345811  1689177000 2023-07-12 16:50:00+01:00
-    2023-07-12 16:55:00+01:00  336.369995  336.625000  336.429993  336.429993  301966  1689177300 2023-07-12 16:55:00+01:00
-    2023-07-12 17:00:00+01:00  336.435486  337.154999  336.839996  336.839996  264732  1689177600 2023-07-12 17:00:00+01:00
-    2023-07-12 17:05:00+01:00  336.829987  336.899994  336.684998  336.684998  200605  1689177900 2023-07-12 17:05:00+01:00
-    2023-07-12 17:10:00+01:00  336.690002  337.229004  337.059998  337.059998  110316  1689178200 2023-07-12 17:10:00+01:00
+    2023-07-06 18:15:00+01:00  342.410004  342.880005  342.858093  342.858093  299423
+    2023-07-06 18:20:00+01:00  342.859985  342.989990  342.825012  342.825012  186800
+    2023-07-06 18:25:00+01:00  342.829987  342.829987  342.029999  342.029999  253544
+    2023-07-06 18:30:00+01:00  342.045013  342.109985  341.720001  341.720001  236668
+    2023-07-06 18:35:00+01:00  341.779907  342.140015  342.089996  342.089996  190417
+    ...                               ...         ...         ...         ...     ...
+    2023-07-12 16:50:00+01:00  336.829987  336.869995  336.390015  336.390015  345811
+    2023-07-12 16:55:00+01:00  336.369995  336.625000  336.429993  336.429993  301966
+    2023-07-12 17:00:00+01:00  336.435486  337.154999  336.839996  336.839996  264732
+    2023-07-12 17:05:00+01:00  336.829987  336.899994  336.684998  336.684998  200605
+    2023-07-12 17:10:00+01:00  336.690002  337.229004  337.059998  337.059998  110316
 
-    [300 rows x 7 columns]
+    [300 rows x 5 columns]
     >>>
 
 All candle data classes support MIN_1, MIN_5, MIN_15, HOUR_1, DAY_1, WEEK_1, MONTH_1, MONTH_3 time horizons.
-BinanceCandleData and AplacaCandleData also support HOUR_2, HOUR_4, HOUR_8, MIN_3
+BinanceCandleData and AplacaCandleData also support HOUR_2, HOUR_4, HOUR_8, MIN_3.
+You can use any time frame you want.  You will need to supply this information later if you want to plot meaningfully.
 
 CandleData that requires api keys.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -44,7 +51,10 @@ CandleData that requires api keys.
     >>> a = AlpacaCandleData(key)
     >>> a.get_candles('QQQ', y.MIN_5, 300)
 
-Alpaca requires a dictionary with both a key and secret. Binance and Yahoo do not.  Binance can accep an API key if you have created one.  Order placement on any API requires a KEY but is not covered by this API.
+Alpaca requires a dictionary with both a key and secret. Binance and Yahoo do not.  Binance can accept an API key if you have created one.  Order placement on any API requires a KEY but is not covered by this API.
+
+.. note::
+    If you are supplying a key to **any API endpoint** please store those keys safely and never ever commit them accidentally to any repo.  Your keys are your account.  Losing control of them is losing control of your account.
 
 
 
@@ -143,13 +153,13 @@ Harmonic searches are searches for ABC, ABCD or XABCD patterns.  On the final po
     >>> m = MatrixSearch(t)
     >>> m.search()
     >>> patterns = m.get_patterns()
-    >>> patterns['XABCD']
+    >>> patterns[m.XABCD]
     []
-    >>> patterns['ABCD']
+    >>> patterns[m.ABCD]
     [ABCDPattern(name='ABCD-50-1.618', formed=True, retraces={'ABC': 0.5000347246336551, 'BCD': 3.31138888888889, 'ABCD': 3.31138888888889}, bullish=False, x=[Timestamp('2023-06-15 12:59:59+0100', tz='Europe/Dublin'), Timestamp('2023-06-17 08:59:59+0100', tz='Europe/Dublin'), Timestamp('2023-06-19 20:59:59+0100', tz='Europe/Dublin'), Timestamp('2023-06-23 20:59:59+0100', tz='Europe/Dublin')], y=[1626.01, 1770.0, 1698.0, 1936.42], abc_extensions=[1936.42], completion_min_price=1930.992, completion_max_price=1930.992)]
-    >>> patterns['ABCD'][0]
+    >>> patterns[m.ABCD][0]
     ABCDPattern(name='ABCD-50-1.618', formed=True, retraces={'ABC': 0.5000347246336551, 'BCD': 3.31138888888889, 'ABCD': 3.31138888888889}, bullish=False, x=[Timestamp('2023-06-15 12:59:59+0100', tz='Europe/Dublin'), Timestamp('2023-06-17 08:59:59+0100', tz='Europe/Dublin'), Timestamp('2023-06-19 20:59:59+0100', tz='Europe/Dublin'), Timestamp('2023-06-23 20:59:59+0100', tz='Europe/Dublin')], y=[1626.01, 1770.0, 1698.0, 1936.42], abc_extensions=[1936.42], completion_min_price=1930.992, completion_max_price=1930.992)
-    >>> patterns['ABC'][0]
+    >>> patterns[m.ABC][0]
     ABCPattern(name=0.382, formed=True, retraces={'ABC': 0.386628628131977}, bullish=True, x=[Timestamp('2023-06-15 12:59:59+0100', tz='Europe/Dublin'), Timestamp('2023-07-14 04:59:59+0100', tz='Europe/Dublin'), Timestamp('2023-07-17 20:59:59+0100', tz='Europe/Dublin')], y=[1626.01, 2029.11, 1873.26], abc_extensions=[1873.26], completion_min_price=1873.26, completion_max_price=1873.26)
     >>> 
 
@@ -158,7 +168,7 @@ Here we can see a single ABCD pattern formed on ETHUSDT. Its completion time was
 .. code-block:: python
     :linenos:
     
-    >>> p = patterns['ABC'][0]
+    >>> p = patterns[m.ABC][0]
     >>> p.name
     0.382
     >>> p.x
@@ -167,4 +177,50 @@ Here we can see a single ABCD pattern formed on ETHUSDT. Its completion time was
     [1626.01, 2029.11, 1873.26]
     >>> 
 
-As you can no doubt tell this information can be plotted with ``b.df`` to show you where the pattern is on the chart. 
+As you can no doubt tell this information can be plotted with ``b.df`` to show you where the pattern is on the chart.
+
+Plotting.
+---------
+
+Plot the findings.
+~~~~~~~~~~~~~~~~~~
+.. code-block:: python
+    :linenos:
+       
+    ```
+    >>> from pyharmonics.plotter import Plotter
+    >>> p = Plotter(t, 'BTCUSDT', b.HOUR_1)
+    >>> p.add_matrix_plots(m.get_patterns(family=m.XABCD))
+    >>> p.show()
+    ```
+
+You will see something like this.
+![This is an image](/docs/images/newplot.png)
+
+See all harmonic patterns.
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. code-block:: python
+    :linenos:
+       
+    ```
+    >>> p = Plotter(t, 'BTCUSDT', b.HOUR_1)
+    >>> p.add_matrix_plots(m.get_patterns())
+    >>> p.show()
+    ```
+
+You will see something like this.
+![This is an image](/docs/images/all_patterns.png)
+
+See all forming patterns.
+~~~~~~~~~~~~~~~~~~~~~~~~~
+.. code-block:: python
+    :linenos:
+       
+    ```
+    >>> m = MatrixSearch(t)
+    >>> m.forming()
+    >>> p = Plotter(t, 'BTCUSDT', b.HOUR_1)
+    >>> p.add_matrix_plots(m.get_patterns(formed=False))
+    >>> p.show()
+    ```
+etc.
