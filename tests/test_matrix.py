@@ -7,7 +7,6 @@ import pandas as pd
 b = BinanceCandleData()
 b._set_params('BTCUSDT', b.HOUR_1, 1000, None, None)
 b.df = pd.read_pickle("tests/data/btc_test_data")
-b._set_candle_gap()
 t = Technicals(b.df, peak_spacing=10)
 m = MatrixSearch(t, fib_tolerance=0.03)
 

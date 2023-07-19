@@ -51,7 +51,6 @@ class CandleData(abc.ABC):
             self.df_index = index
         self.df[self.INDEX] = self.df[self.df_index]
         self.df = self.df.set_index(self.df[self.INDEX])
-        self._set_candle_gap()
         self.df = self.df[self.COLUMNS].drop_duplicates()
         self.df = self.df.sort_index()
 
@@ -142,24 +141,3 @@ class CandleData(abc.ABC):
             return t  # type:ignore - can be datetime sometimes
         else:
             raise ValueError('Time must be in epoch')
-
-    def _set_candle_gap(self):
-        """
-        Calculates the timedelta or epoch between candles.  Important for plotting for this block of data.
-        """
-        scalar, vector = int(self.interval[:-1]), self.interval[-1:]
-        times = {
-            'm': {'minutes': scalar},
-            'h': {'hours': scalar},
-            'd': {'days': scalar},
-            'w': {'days': scalar * 7},
-            'M': {'days': scalar * 30}
-        }
-        kwargs = times[vector]
-        self.candle_gap = datetime.timedelta(**kwargs)
-
-        # in the case of the df_index being epoch the x on a pattern or plot will be measured in epoch too.
-        if self.df_index == self.CLOSE_TIME:
-            now = datetime.datetime.now()
-            then = now - self.candle_gap
-            self.candle_gap = int(now.timestamp() - then.timestamp())
