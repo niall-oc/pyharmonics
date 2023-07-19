@@ -357,6 +357,9 @@ class PlotterBase:
             **self.fonts
         )
 
+    def show(self):
+        self.set_main_plot.show()
+
     def save_plot_image(self, location, dpi=600):
         # self.add_watermark('/home/xual/Software/xual/images/cybertron.jpg')
         if self.technicals.candle_data.source != BinanceCandleData.source and self.technicals.candle_data.interval != constants.DAY_1:

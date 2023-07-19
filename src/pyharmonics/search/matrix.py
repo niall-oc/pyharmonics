@@ -205,7 +205,6 @@ class MatrixSearch:
             self._formed[self.XABCD] += self.find_xabcd(D_idx)
             self._formed[self.ABCD] += self.find_abcd(D_idx)
             self._formed[self.ABC] += self.find_abc(D_idx)
-        return self.get_patterns(formed=True)
 
     def find_abc(self, C_idx):
         """
@@ -340,7 +339,6 @@ class MatrixSearch:
                                 if self.fib_matrix[X_idx][D_idx] >= self.PATTERNS[constants.XABCD][xp][constants.MIN] * percent_complete and\
                                    self.fib_matrix[X_idx][D_idx] <= self.PATTERNS[constants.XABCD][xp][constants.MIN]:
                                     self._forming[constants.XABCD].append(self._create_xabcd_pattern(X_idx, A_idx, B_idx, C_idx, D_idx, xp, formed=False))
-        return self.get_patterns(formed=False)
 
     def _create_abc_pattern(self, A_idx, B_idx, C_idx, pattern):
         """
