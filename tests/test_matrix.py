@@ -9,12 +9,12 @@ b._set_params('BTCUSDT', b.HOUR_1, 1000, None, None)
 b.df = pd.read_pickle("tests/data/btc_test_data")
 t = Technicals(b.df, peak_spacing=10)
 m = MatrixSearch(t, fib_tolerance=0.03)
-
+m.search()
+m.forming()
 
 def test_xabcd_search():
-    m.search()
-    assert (len(m.formed[constants.XABCD]) == 6)
-    results = sorted([i.p_id for i in m.formed[constants.XABCD]])
+    assert (len(m._formed[constants.XABCD]) == 6)
+    results = sorted([i.p_id for i in m._formed[constants.XABCD]])
     expected = sorted([
         '45a32949a257c05749fe6217566587c0511a80b63d3b8696fbdd694cfe57165e',
         'cd7e5bf24c8019f3f006e075ff343f41132877f36c010b5c4ffe11f1a339ab1a',
@@ -27,9 +27,8 @@ def test_xabcd_search():
 
 
 def test_abcd_search():
-    m.search()
-    assert (len(m.formed[constants.ABCD]) == 6)
-    results = sorted([i.p_id for i in m.formed[constants.ABCD]])
+    assert (len(m._formed[constants.ABCD]) == 6)
+    results = sorted([i.p_id for i in m._formed[constants.ABCD]])
     expected = sorted([
         '60fb740d66b3e7ff12ed27fcdc9922577286e7b995c5c7fb40bf2886c0036c1c',
         '749064ae1e093a743b0e63ed4ae2bb9eac942fedc8be15cced778c885ec0f865',
@@ -42,9 +41,8 @@ def test_abcd_search():
 
 
 def test_abc_search():
-    m.search()
-    assert (len(m.formed[constants.ABC]) == 62)
-    results = sorted([i.p_id for i in m.formed[constants.ABC]])
+    assert (len(m._formed[constants.ABC]) == 62)
+    results = sorted([i.p_id for i in m._formed[constants.ABC]])
     expected = sorted([
         '05f81579fd95c1dfae9eadcc8b4e64dbe13ce2dca0b184060a881320d55f701e',
         '0ba61b32d30cdb8a57f4b8722dc71410c0375482da87cc48cfd6f2a9b5b9de97',
@@ -113,9 +111,8 @@ def test_abc_search():
 
 
 def test_xabcd_forming():
-    m.find_forming()
-    assert (len(m.forming[constants.XABCD]) == 5)
-    results = sorted([i.p_id for i in m.forming[constants.XABCD]])
+    assert (len(m._forming[constants.XABCD]) == 5)
+    results = sorted([i.p_id for i in m._forming[constants.XABCD]])
     expected = sorted([
         '01df59d33c9ca703fe2ca5668c685701c35640b2b6d9b37face538b50b7a04ff',
         '7c8e84ccd28e7a1da1d869892c4c3661e3bbcbf31ad8ee86a6eb4ac32415eeba',
@@ -127,9 +124,8 @@ def test_xabcd_forming():
 
 
 def test_abcd_forming():
-    m.find_forming()
-    assert (len(m.forming[constants.ABCD]) == 11)
-    results = sorted([i.p_id for i in m.forming[constants.ABCD]])
+    assert (len(m._forming[constants.ABCD]) == 11)
+    results = sorted([i.p_id for i in m._forming[constants.ABCD]])
     expected = sorted([
         '0581e47c16ac359e6c60d88bf247a2b85439a4a7b5ded83c4c3b6f0ec6a1280a',
         '2320b6327e3f111bf5d8b9d259b455da86999f7c8a62eebbaee7b97abc7b522a',

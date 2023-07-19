@@ -440,4 +440,3 @@ class Technicals:
         }
         kwargs = times[vector]
         self.candle_gap = datetime.timedelta(**kwargs)
-

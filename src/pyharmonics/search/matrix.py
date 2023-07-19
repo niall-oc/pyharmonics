@@ -28,17 +28,20 @@ class MatrixSearch:
         -------
         None
         """
-        self.formed = {self.XABCD: [], self.ABCD: [], self.ABC: []}
-        self.forming = {self.XABCD: [], self.ABCD: [], self.ABC: []}
+        self._formed = {self.XABCD: [], self.ABCD: [], self.ABC: []}
+        self._forming = {self.XABCD: [], self.ABCD: [], self.ABC: []}
         self.PATTERNS = utils.get_pattern_definition(fib_tolerance, patterns or constants.MATRIX_PATTERNS)
         self.td = technical_data
         self._build_fib_matrix()
 
-    def get_patterns(self, formed=True):
-        if formed:
-            return self.formed
-        else:
-            return self.forming
+    def get_patterns(self, family=None, formed=True):
+        group = self._formed
+        if not formed:
+            group = self._forming
+
+        if family:
+            group = {family: group[family]}
+        return group
 
     def _build_fib_matrix(self):
         """
@@ -127,7 +130,7 @@ class MatrixSearch:
                 pass
         return matrix
 
-    def search_retraces(self, retrace, stage):
+    def _search_retraces(self, retrace, stage):
         """
         >>> self.search_retraces(0.618, constants.ABC)
         >>> {'crab', 'gartley', 'shark', 'deep-shark'}
@@ -142,7 +145,7 @@ class MatrixSearch:
             if retrace >= retraces[constants.MIN] and ((retrace == constants.ABCD or retrace == constants.XABCD) or retrace <= retraces[constants.MAX])
         ])
 
-    def search_candle(self, candle_idx, stage, filter_by=None):
+    def _search_candle(self, candle_idx, stage, filter_by=None):
         """
         Given a candle, a point in time. Examine this candle in relation
         to every other peak before it.  If this candle fits as part of a pattern(s)
@@ -164,7 +167,7 @@ class MatrixSearch:
                     peak_idx -= 1
 
                 # Search fro any patterns that fit with this retrace
-                patterns = self.search_retraces(candle[idx], stage)
+                patterns = self._search_retraces(candle[idx], stage)
                 # If we are trying to match these patterns to other forming patterns
                 if filter_by:
                     patterns = patterns & filter_by
@@ -190,7 +193,7 @@ class MatrixSearch:
     def search(self, limit_to=-1):
         """
         """
-        self.formed = {constants.XABCD: [], constants.ABCD: [], constants.ABC: []}
+        self._formed = {constants.XABCD: [], constants.ABCD: [], constants.ABC: []}
         if limit_to > -1:
             limit_to = max(2, self.MATRIX_LEN - limit_to) - 1
 
@@ -199,16 +202,17 @@ class MatrixSearch:
             # Gather all valid cells ( upper right triangle of matrix)
             # Search for BCD patterns that also complete on this candle.
             # this gives both the X to d, and the bcd within that x to d
-            self.formed[constants.XABCD] += self.find_xabcd(D_idx)
-            self.formed[constants.ABCD] += self.find_abcd(D_idx)
-            self.formed[constants.ABC] += self.find_abc(D_idx)
+            self._formed[self.XABCD] += self.find_xabcd(D_idx)
+            self._formed[self.ABCD] += self.find_abcd(D_idx)
+            self._formed[self.ABC] += self.find_abc(D_idx)
+        return self.get_patterns(formed=True)
 
     def find_abc(self, C_idx):
         """
         From this candles perspective. What ABC retraces occur here.
         """
         found = []
-        abcs = self.search_candle(C_idx, constants.SCALPS)
+        abcs = self._search_candle(C_idx, constants.SCALPS)
 
         for pattern_indexes, patterns in abcs.items():
             A, B, C = pattern_indexes
@@ -225,13 +229,13 @@ class MatrixSearch:
         2. Does the over all ABCD fit?
         """
         found = []
-        abcds = self.search_candle(D_idx, constants.ABCD)
+        abcds = self._search_candle(D_idx, constants.ABCD)
 
         for b_key, abcd_patterns in abcds.items():
             # Locate C point
             B_idx, C_idx, _ = b_key
             # From the point of C how many ABC retraces fit
-            abcs = self.search_candle(C_idx, constants.ABC, filter_by=abcd_patterns & constants.ABCDS)
+            abcs = self._search_candle(C_idx, constants.ABC, filter_by=abcd_patterns & constants.ABCDS)
             for a_key, abc_patterns in abcs.items():
                 # Extract the A point and potential b point
                 A_idx, b_idx, _ = a_key
@@ -257,19 +261,19 @@ class MatrixSearch:
         found = []
 
         # From D find all X, ??, D retraces that are harmonic XABCD pattern candidates
-        xds = self.search_candle(D_idx, constants.XABCD)
+        xds = self._search_candle(D_idx, constants.XABCD)
 
         # For all candidates
         for x_key, xd_patterns in xds.items():
             # Capture the X and peak point
             X_idx, peak_idx, _ = x_key
             # Consider all of the BCD candidates
-            bcds = self.search_candle(D_idx, constants.BCD)
+            bcds = self._search_candle(D_idx, constants.BCD)
             for b_key, bcd_patterns in bcds.items():
                 # Capture the B and C points
                 B_idx, C_idx, _ = b_key
                 # Finally find all ABC candidates that intersect with point C
-                abcs = self.search_candle(C_idx, constants.ABC, filter_by=bcd_patterns)
+                abcs = self._search_candle(C_idx, constants.ABC, filter_by=bcd_patterns)
                 # Iterate over the ABC cancidates
                 for a_key, abc_patterns in abcs.items():
                     # Capture the A index and the potential B index
@@ -278,7 +282,7 @@ class MatrixSearch:
                     # In addition if the A or C point are a match with the peak_index we potentially have a Harmonic pattern
                     if b_idx == B_idx and (peak_idx == C_idx or peak_idx == A_idx):
                         # Finally look for XAB retraces that land on our confirmed B point
-                        xabs = self.search_candle(B_idx, constants.XAB, filter_by=bcd_patterns)
+                        xabs = self._search_candle(B_idx, constants.XAB, filter_by=bcd_patterns)
                         # iterate through all candidates
                         for xa_key, xab_patterns in xabs.items():
                             # Extract out potential x and a points.
@@ -299,10 +303,10 @@ class MatrixSearch:
                                     found.append(self._create_xabcd_pattern(X_idx, A_idx, B_idx, C_idx, D_idx, p))
         return found
 
-    def find_forming(self, limit_to=-1, percent_complete=0.8):
+    def forming(self, limit_to=-1, percent_complete=0.8):
         """
         """
-        self.forming = {constants.XABCD: [], constants.ABCD: [], constants.ABC: []}
+        self._forming = {constants.XABCD: [], constants.ABCD: [], constants.ABC: []}
         if limit_to > -1:
             limit_to = max(2, self.MATRIX_LEN - limit_to)
 
@@ -314,7 +318,7 @@ class MatrixSearch:
             for points, bcd_patterns in baams.items():
                 B_idx, C_idx, D_idx = points
                 # Locate ABC patterns who share this B and C point
-                abcs = self.search_candle(C_idx, constants.ABC)
+                abcs = self._search_candle(C_idx, constants.ABC)
                 for a_key, abc_patterns in abcs.items():
                     # A point
                     A_idx, b_idx, _ = a_key
@@ -323,9 +327,9 @@ class MatrixSearch:
                         for ap in abcd_patterns:
                             if self.fib_matrix[B_idx][D_idx] >= self.PATTERNS[constants.ABCD][ap][constants.MIN] * percent_complete and \
                                self.fib_matrix[B_idx][D_idx] <= self.PATTERNS[constants.ABCD][ap][constants.MIN]:
-                                self.forming[constants.ABCD].append(self._create_abcd_pattern(A_idx, B_idx, C_idx, D_idx, ap, formed=False))
+                                self._forming[constants.ABCD].append(self._create_abcd_pattern(A_idx, B_idx, C_idx, D_idx, ap, formed=False))
 
-                        xabs = self.search_candle(B_idx, constants.XAB)
+                        xabs = self._search_candle(B_idx, constants.XAB)
                         for x_key, xab_patterns in xabs.items():
                             # If the XAB retraces X index is the same x index in the xd retrace that the bcd retrace intersects with
                             # then we have a pattern and need to finally locate the a and c points.
@@ -335,7 +339,8 @@ class MatrixSearch:
                                 # the pattern cannot have over shot the min completion zone
                                 if self.fib_matrix[X_idx][D_idx] >= self.PATTERNS[constants.XABCD][xp][constants.MIN] * percent_complete and\
                                    self.fib_matrix[X_idx][D_idx] <= self.PATTERNS[constants.XABCD][xp][constants.MIN]:
-                                    self.forming[constants.XABCD].append(self._create_xabcd_pattern(X_idx, A_idx, B_idx, C_idx, D_idx, xp, formed=False))
+                                    self._forming[constants.XABCD].append(self._create_xabcd_pattern(X_idx, A_idx, B_idx, C_idx, D_idx, xp, formed=False))
+        return self.get_patterns(formed=False)
 
     def _create_abc_pattern(self, A_idx, B_idx, C_idx, pattern):
         """

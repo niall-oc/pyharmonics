@@ -375,7 +375,7 @@ class Plotter(PlotterBase):
         self.fonts = dict(
             font=dict(
                 family="Courier New, monospace, bold",
-                size=25
+                size=15
             ),
             title_font_size=38
         )
