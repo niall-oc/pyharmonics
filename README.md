@@ -32,7 +32,7 @@ Use the market data features or generate your own market data matching the dataf
 ```
 >>> from pyharmonics.marketdata import BinanceCandleData
 >>> b = BinanceCandleData()
->>> b.get_candles('BTCUSDT', MIN_15, 1000)
+>>> b.get_candles('BTCUSDT', b.MIN_15, 1000)
 >>> b.df
 >>> b.df
                                open      high       low     close     volume  close_time                       dts
