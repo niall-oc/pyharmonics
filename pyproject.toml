@@ -1,5 +1,8 @@
 [build-system]
-requires = ["setuptools"]
+requires = [
+    "setuptools",
+    "poetry"
+]
 build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
@@ -7,9 +10,14 @@ pythonpath = [
   "src"
 ]
 
+[tool.poetry]
+documentation = "https://pyharmonics.readthedocs.io/en/latest/"
+repository = "https://github.com/niall-oc/pyharmonics"
+
 [project]
 name = "pyharmonics"
 requires-python = ">=3.7"
+readme = "README.md"
 authors = [
   { name="Niall O'Connor", email="zechs.marquie@gmail.com" },
 ]
@@ -18,15 +26,13 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-version = "0.0.1.2"
+version = "0.0.1.9"
 dependencies = [
-    "pandas",
-    "binance-connector",
-    "pytest",
-    "pyyaml",
     "yfinance",
     "alpaca-trade-api",
+    "ta",
+    "binance-connector",
     "plotly",
     "kaleido",
-    "ta"
+    "pandas"
 ]

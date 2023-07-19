@@ -195,7 +195,8 @@ Plot the findings.
     ```
 
 You will see something like this.
-![This is an image](/docs/images/newplot.png)
+.. image:: images/newplot.png
+  :alt: Fully formed patterns
 
 See all harmonic patterns.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -209,7 +210,8 @@ See all harmonic patterns.
     ```
 
 You will see something like this.
-![This is an image](/docs/images/all_patterns.png)
+.. image:: images/all_patterns.png
+  :alt: Fully formed patterns
 
 See all forming patterns.
 ~~~~~~~~~~~~~~~~~~~~~~~~~

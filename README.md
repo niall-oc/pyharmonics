@@ -2,6 +2,25 @@
 
 pyharmonics detects harmonic patterns in OHLC candle data for any stock or crypto asset.  See http://www.harmonictrader.com for more information.
 
+## Installation
+
+From git
+```
+$ git clone git@github.com:niall-oc/pyharmonics.git
+$ cd pyharmonics
+$ pip install .
+$ cd src
+$ python
+>>> from pyharmonics.marketdata import BinanceCandleData
+...
+```
+From pypi
+```
+$ pip install pyharmonics
+$ python
+>>> from pyharmonics.marketdata import BinanceCandleData
+```
+
 ## Complete Guide
 
 https://pyharmonics.readthedocs.io/en/latest/
