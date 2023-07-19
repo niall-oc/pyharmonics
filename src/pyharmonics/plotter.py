@@ -358,7 +358,7 @@ class PlotterBase:
         )
 
     def show(self):
-        self.set_main_plot.show()
+        self.main_plot.show()
 
     def save_plot_image(self, location, dpi=600):
         # self.add_watermark('/home/xual/Software/xual/images/cybertron.jpg')
