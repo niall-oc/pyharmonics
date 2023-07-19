@@ -68,7 +68,7 @@ Search for a harmonic pattern.
 Plot the findings.
 ```
 >>> from pyharmonics.plotter import Plotter
->>> p = Plotter(t, 'BTCUSDT', b.HOUR_1)
+>>> p = Plotter(t, 'BTCUSDT', b.MIN_15)
 >>> p.add_matrix_plots(m.get_patterns(family=m.XABCD))
 >>> p.show()
 ```
