@@ -30,7 +30,7 @@ where
     >>> from pyharmonics.technicals import Technicals
     >>> b = BinanceCandleData()
     >>> b.get_candles('ETHUSDT', b.HOUR_4, 400)
-    >>> t = Technicals(b.df)
+    >>> t = Technicals(b.df, b.symbol, b.interval)
     >>> m = MatrixSearch(t)
     >>> m.search()
     >>> patterns = m.get_patterns()

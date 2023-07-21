@@ -8,7 +8,7 @@ import numpy as np
 b = BinanceCandleData()
 b._set_params('BTCUSDT', b.HOUR_1, 1000, None, None)
 b.df = pd.read_pickle('tests/data/btc_test_data')
-t = Technicals(b.df, peak_spacing=20)
+t = Technicals(b.df, b.symbol, b.interval, peak_spacing=20)
 
 def test_price_dips():
     given = t.get_peak_x_y(t.PRICE_DIPS)

@@ -6,7 +6,7 @@ Using the Technicals object on OHLC Data
     >>> from pyharmonics.marketdata import BinanceCandleData
     >>> from pyharmonics.technicals import Technicals
     >>> b = BinanceCandleData()
-    >>> t = Technicals(b.df, peak_spacing=20)
+    >>> t = Technicals(b.df, b.symbol, b.interval, peak_spacing=20)
     Traceback (most recent call last):
     File "<stdin>", line 1, in <module>
     File "/home/xual/Software/pyharmonics/src/pyharmonics/technicals.py", line 129, in __init__
@@ -37,7 +37,7 @@ Using the Technicals object on OHLC Data
     2023-07-18 20:59:59+01:00  1897.21  1903.58  1875.73  1891.50  46447.8182  1689710399 2023-07-18 20:59:59+01:00
 
     [400 rows x 7 columns]
-    >>> t = Technicals(b.df)
+    >>> t = Technicals(b.df, b.symbol, b.interval)
     >>> t.df
                                 open     high      low    close      volume  close_time  ... price_peaks  price_dips  macd_peaks  macd_dips  rsi_peaks  rsi_dips
     index                                                                                  ...                                                                    

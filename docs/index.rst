@@ -15,13 +15,14 @@ In a pyharmonics plot.
 .. warning::
     pyharmonics is not financial advice.  It is a tool for detecting harmonic price levels or indicator divergences for an assets price trend.  Any decision taken to enter a trade on any asset is entirely yours. No risk is assumed by this API.
 
-.. contents:: Table of Contents
-   :depth: 2
-
 Installation
 ------------
 
 ``pip install pyharmonics``
+
+
+Contents
+--------
 
 .. include:: source/marketdata.rst
 

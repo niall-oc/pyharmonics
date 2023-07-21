@@ -44,3 +44,11 @@ Alpaca requires a dictionary with both a key and secret. Binance and Yahoo do no
 
 .. warning::
     If you are supplying a key to **any API endpoint** please store those keys safely and never ever commit them accidentally to any repo.  Your keys are your account.  Losing control of them is losing control of your account.
+
+Binance Usage:
+~~~~~~~~~~~~~~
+
+.. autosummary::
+    :toctree: generated
+
+    pyharmonics.marketdata.BinanceCandleData

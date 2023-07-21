@@ -55,7 +55,7 @@ index
 Create a technicals object for further analysis.
 ```
 >>> from pyharmonics.technicals import Technicals
->>> t = Technicals(b.df)
+>>> t = Technicals(b.df, b.symbol, b.interval)
 ```
 
 Search for a harmonic pattern.
