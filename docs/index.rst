@@ -20,9 +20,8 @@ Installation
 
 ``pip install pyharmonics``
 
-
-Contents
---------
+.. toctree::
+ :maxdepth: 2
 
 .. include:: source/marketdata.rst
 
