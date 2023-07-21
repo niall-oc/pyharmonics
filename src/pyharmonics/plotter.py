@@ -11,16 +11,18 @@ import plotly.io as pio
 from pyharmonics import constants, Technicals
 from pyharmonics.marketdata import BinanceCandleData
 import pandas as pd
-
+import datetime
 
 class PlotterBase:
 
-    def __init__(self, technicals: Technicals, row_map=None, colors=None, plot_ema=False, plot_sma=True):
+    def __init__(self, technicals: Technicals, symbol, interval, row_map=None, colors=None, plot_ema=False, plot_sma=True):
         self.technicals = technicals
         self.df = technicals.as_df()
         self.date_series = self.df.index
         self.plot_ema = plot_ema
         self.plot_sma = plot_sma
+        self.symbol = symbol
+        self.interval = interval
         self.colors = colors or {
             constants.BEARISH: {
                 constants.FORMED: {  # formed
@@ -51,6 +53,22 @@ class PlotterBase:
             Technicals.STOCH_RSI: {'row': 5, 'col': 1, 'color': 'cyan', 'weight': 0.1},
             Technicals.BBP: {'row': 6, 'col': 1, 'color': 'blue', 'weight': 0.1},
         }
+        self._set_candle_gap()
+    
+    def _set_candle_gap(self):
+        """
+        Calculates the timedelta or epoch between candles.  Important for plotting for this block of data.
+        """
+        scalar, vector = int(self.interval[:-1]), self.interval[-1:]
+        times = {
+            'm': {'minutes': scalar},
+            'h': {'hours': scalar},
+            'd': {'days': scalar},
+            'w': {'days': scalar * 7},
+            'M': {'days': scalar * 30}
+        }
+        kwargs = times[vector]
+        self.candle_gap = datetime.timedelta(**kwargs)
 
     def _set_precision(self, p):
         self.int_precision, self.float_precision = tuple(len(c) for c in str(p).split('.'))
@@ -373,8 +391,8 @@ class PlotterBase:
 
 class Plotter(PlotterBase):
     def __init__(self, technicals: Technicals, symbol, interval, row_map=None, colors=None, plot_ema=False, plot_sma=True):
-        super(Plotter, self).__init__(technicals, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
-        self.title = f"{symbol} {interval}"
+        super(Plotter, self).__init__(technicals, symbol, interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
+        self.title = f"{self.symbol} {self.interval}"
         self.fonts = dict(
             font=dict(
                 family="Courier New, monospace, bold",
@@ -403,49 +421,51 @@ class Plotter(PlotterBase):
         )
 
 class PositionPlotter(PlotterBase):
-    def __init__(self, technicals, row_map=None, colors=None, plot_ema=False, plot_sma=True):
-        super(PositionPlotter, self).__init__(technicals, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
-        self.title = f"{self.candle_data.symbol} {self.candle_data.interval}"
+    def __init__(self, technicals, position, row_map=None, colors=None, plot_ema=False, plot_sma=True):
+        super(PositionPlotter, self).__init__(technicals, position.symbol, position.interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
+        self.title = f"{self.symbol} {self.interval}"
         self.fonts = dict(
             font=dict(
                 family="Courier New, monospace, bold",
-                size=25
+                size=15
             ),
             title_font_size=30
         )
+        self.position = position
         self.set_sub_plots()
         self.set_main_plot()
         self.add_volume_plot()
 
         for ind in self.technicals.indicators:
-            if ind == constants.MACD:
+            if ind == self.technicals.MACD:
                 self.add_macd_plot()
             else:
                 self.add_indicator_plot(ind)
+        self._set_position()
 
     def set_sub_plots(self):
         space = 1 - (self.ROW_MAP['main']['weight'] + self.ROW_MAP[constants.VOLUME]['weight'])
         indicator_height = space / len(self.technicals.indicators)
         heights = [self.ROW_MAP['main']['weight'], self.ROW_MAP[constants.VOLUME]['weight']] + [indicator_height for _ in self.technicals.indicators]
         self.main_plot = make_subplots(
-            rows=4, cols=2, shared_xaxes=True,
+            rows=len(heights), cols=2, shared_xaxes=True,
             vertical_spacing=0.025,
             row_heights=heights,
             column_widths=[0.66, 0.33]
         )
 
-    def add_pattern_completion_zone(self, position, candle_width, chart_end_time):
+    def _add_pattern_completion_zone(self, candle_width, chart_end_time):
         # Add target completion zone
         self.main_plot.add_trace(
             go.Scatter(
                 mode="markers+lines+text",
                 x=[chart_end_time, chart_end_time + candle_width, chart_end_time + candle_width, chart_end_time, chart_end_time],
                 y=[
-                    position.pattern.completion_min_price,
-                    position.pattern.completion_min_price,
-                    position.pattern.completion_max_price,
-                    position.pattern.completion_max_price,
-                    position.pattern.completion_min_price
+                    self.position.pattern.completion_min_price,
+                    self.position.pattern.completion_min_price,
+                    self.position.pattern.completion_max_price,
+                    self.position.pattern.completion_max_price,
+                    self.position.pattern.completion_min_price
                 ],
                 fillcolor='rgba(200, 200, 200, 0.075)',
                 text=["", "", "", "Entry->        "],
@@ -454,21 +474,21 @@ class PositionPlotter(PlotterBase):
             )
         )
 
-    def add_price_target_blocks(self, position, target_block_width, chart_end_time):
+    def _add_price_target_blocks(self, target_block_width, chart_end_time):
         target_candle = chart_end_time + target_block_width
-        is_stop = not position.pattern.bullish
+        is_stop = not self.position.pattern.bullish
         i = 1
-        for target in position.targets:
+        for target in self.position.targets:
             # Profit Rectangle
             self.main_plot.add_trace(
                 go.Scatter(
                     mode="lines+text",
                     x=[target_candle, target_candle + target_block_width, target_candle + target_block_width, target_candle, target_candle],
-                    y=[position.strike, position.strike, target, target, position.strike],
-                    fillcolor=self.colors[position.pattern.bullish][position.pattern.formed]['fill'],
+                    y=[self.position.strike, self.position.strike, target, target, self.position.strike],
+                    fillcolor=self.colors[self.position.pattern.bullish][self.position.pattern.formed]['fill'],
                     fill="toself",
                     text=["", "", f"T{i}", ""],
-                    line=dict(color=self.colors[position.pattern.bullish][position.pattern.formed]['line'], width=1)
+                    line=dict(color=self.colors[self.position.pattern.bullish][self.position.pattern.formed]['line'], width=1)
                 )
             )
             # Loss Rectangle
@@ -476,39 +496,39 @@ class PositionPlotter(PlotterBase):
                 go.Scatter(
                     mode="lines+text",
                     x=[target_candle, target_candle + target_block_width, target_candle + target_block_width, target_candle, target_candle],
-                    y=[position.strike, position.strike, position.stop, position.stop, position.strike],
-                    fillcolor=self.colors[is_stop][position.pattern.formed]['fill'],
+                    y=[self.position.strike, self.position.strike, self.position.stop, self.position.stop, self.position.strike],
+                    fillcolor=self.colors[is_stop][self.position.pattern.formed]['fill'],
                     fill="toself",
                     text=["", "", "Stop", ""],
-                    line=dict(color=self.colors[is_stop][position.pattern.formed]['line'], width=1)
+                    line=dict(color=self.colors[is_stop][self.position.pattern.formed]['line'], width=1)
                 )
             )
             i += 1
             target_candle = target_candle + target_block_width + target_block_width
 
-    def add_position_outcomes(self, position):
+    def _add_position_outcomes(self):
         """
         """
-        num_targets = len(position.targets)
+        num_targets = len(self.position.targets)
         title_col = ['Stop', 'Strike']
-        price_col = [f"{self._price_render(position.stop)}", f"{self._price_render(position.strike)}"]
-        move_col = [f"{(position.moves['stop']-1) * 100:0.3f}%", "0.00%"]
-        position_col_base = [f"${position.outcomes['stop']:.2f}", f"${position.outcomes['position_size']:.2f}"]
+        price_col = [f"{self._price_render(self.position.stop)}", f"{self._price_render(self.position.strike)}"]
+        move_col = [f"{(self.position.moves['stop']-1) * 100:0.3f}%", "0.00%"]
+        position_col_base = [f"${self.position.outcomes['stop']:.2f}", f"${self.position.outcomes['position_size']:.2f}"]
         position_cols = []
         total_col = [
-            position.outcomes['stop'] * num_targets,
-            position.dollar_amount,
+            self.position.outcomes['stop'] * num_targets,
+            self.position.dollar_amount,
         ]
-        totals = [position.outcomes['stop'] for t in position.targets]
-        for i, t in enumerate(position.targets, 1):
+        totals = [self.position.outcomes['stop'] for t in self.position.targets]
+        for i, t in enumerate(self.position.targets, 1):
             key = f't{i}'
             title_col.append(f'Target {i}')
             price_col.append(f"{self._price_render(t)}")
-            move_col.append(f"{(position.moves[key]-1) * 100:.3f}%")
-            positions_cells = [f"${position.outcomes[key]:.2f}" if c >= i else f"${position.outcomes['stop']:.2f}" for c in range(num_targets)]
-            positions_cells[i - 1] = f"${position.outcomes[key]:.2f}"
+            move_col.append(f"{(self.position.moves[key]-1) * 100:.3f}%")
+            positions_cells = [f"${self.position.outcomes[key]:.2f}" if c >= i else f"${self.position.outcomes['stop']:.2f}" for c in range(num_targets)]
+            positions_cells[i - 1] = f"${self.position.outcomes[key]:.2f}"
             position_cols.append(position_col_base + positions_cells)
-            totals[i - 1] = position.outcomes[key]
+            totals[i - 1] = self.position.outcomes[key]
             total_col.append(sum(totals))
 
         # COLORS
@@ -516,19 +536,19 @@ class PositionPlotter(PlotterBase):
         black = 'black'
         green = 'rgb(0, 50, 0)'
         fill_color = [
-            [red, black] + [green for t in position.targets],
-            [red, black] + [green for t in position.targets],
-            [red, black] + [green for t in position.targets],
+            [red, black] + [green for t in self.position.targets],
+            [red, black] + [green for t in self.position.targets],
+            [red, black] + [green for t in self.position.targets],
         ]
         for i in range(num_targets):
             positions_colors = [red if c < i else green for c in range(num_targets)]
             fill_color.append(
                 [red, black] + positions_colors
             )
-        fill_color.append([red, black] + [green for t in position.targets])
+        fill_color.append([red, black] + [green for t in self.position.targets])
 
         # Reverse colors for long
-        if position.long:
+        if self.position.long:
             title_col.reverse()
             price_col.reverse()
             move_col.reverse()
@@ -539,7 +559,7 @@ class PositionPlotter(PlotterBase):
         total_col = [f"${t:.2f}" for t in total_col]
 
         data_cells = [title_col, price_col, move_col] + position_cols + [total_col]
-        headers = ['', 'Limits', '% Pnl'] + [f'Pos {i}' for i in range(num_targets)] + ['Returns']
+        headers = ['Limit', 'Price', '% Pnl'] + [f'Pos {i}' for i in range(num_targets)] + ['Returns']
         widths = [20, 19, 17] + [17 for _ in position_cols] + [20]
 
         self.main_plot.add_trace(
@@ -549,9 +569,9 @@ class PositionPlotter(PlotterBase):
                     y=[0.95, 1]
                 ),
                 header=dict(
-                    values=[f'Trade Outcomes for ${position.dollar_amount} position'],
+                    values=[f'Trade Outcomes for ${self.position.dollar_amount} position'],
                     fill_color='darkslategray',
-                    font=dict(color=['rgb(255, 255, 255)'] * len(data_cells), size=30),
+                    font=dict(color=['rgb(255, 255, 255)'] * len(data_cells), size=25),
                     height=60
                 )
             )
@@ -561,13 +581,13 @@ class PositionPlotter(PlotterBase):
             go.Table(
                 domain=dict(
                     x=[0.63, 1],
-                    y=[0.67, 0.95]
+                    y=[0.37, 0.95]
                 ),
                 columnwidth=widths,
                 header=dict(
                     values=headers,
                     fill_color='black',
-                    font=dict(color=['rgb(245, 245, 245)'] * len(data_cells), size=20),
+                    font=dict(color=['rgb(245, 245, 245)'] * len(data_cells), size=18),
                     height=40
                 ),
                 cells=dict(
@@ -575,181 +595,32 @@ class PositionPlotter(PlotterBase):
                     line_color='darkslategray',
                     fill_color=fill_color,
                     align='left',
-                    font=dict(color=['rgb(245, 245, 145)'] * len(data_cells), size=18),
+                    font=dict(color=['rgb(245, 245, 145)'] * len(data_cells), size=14),
                     height=35,
                 )
             )
         )
 
-    def get_stat_trace(self, stats):
-        moves = sorted(stats.movement.items(), key=lambda k: int(k[0]), reverse=True)
-        trace = go.Scatter(
-            mode='lines+markers+text',
-            x=[m['label'] for _, m in moves],
-            y=[m['price'] for _, m in moves],
-            text=[f"${self._price_render(m['price'])}" for k, m in moves]
-        )
-        return trace
-
-    def add_statistics_trace(self, trace):
+    def _set_position(self, shape_width=0.1):
         """
         """
-        self.main_plot.add_trace(
-            go.Table(
-                domain=dict(
-                    x=[0.7, 1],
-                    y=[0.2, 0.25]
-                ),
-                header=dict(
-                    values=["Year to date performance"],
-                    fill_color='darkslategray',
-                    font=dict(color=['rgb(255, 255, 255)'], size=30, family="Arial, bold"),
-                    height=38
-                )
-            )
-        )
-        self.main_plot.add_trace(trace, row=4, col=2)
-
-    def win_loss_to_df(self, w, pos):
-        """
-        Does this
-        >>> df = pd.DataFrame([dict(d.to_mongo()) for d in w])
-        >>> perf_df = pd.DataFrame(df.groupby(['symbol', 'interval', 'classification']).sum(numeric_only=True).reset_index())
-        >>> counts = pd.DataFrame(df.groupby(['interval', 'classification']).size().to_frame('num').reset_index())
-        >>> perf_df['num'] = counts['num']
-        >>> perf_df['perf'] = perf_df['gains'] / perf_df['num']
-        >>> perf_df[['symbol', 'interval', 'classification', 'count', 'perf']]
-            symbol interval classification  count        perf
-        0  STORJUSDT      15m           ABCD     52   98.843759
-        1  STORJUSDT      15m          XABCD     13  101.772186
-        2  STORJUSDT       1h           ABCD     43   96.607369
-        3  STORJUSDT       1h          XABCD      3  108.839432
-        4  STORJUSDT       4h           ABCD      4   95.805938
-        """
-        df = pd.DataFrame([dict(d.to_mongo()) for d in w])
-        this_pattern = df.loc[(df['name'] == pos.pattern.name)]
-        perf_df = pd.DataFrame(df.groupby(['symbol', 'interval', 'classification']).sum(numeric_only=True).reset_index())
-        counts = pd.DataFrame(df.groupby(['interval', 'classification']).size().to_frame('num').reset_index())
-        perf_df['num'] = counts['num']
-        perf_df['perf'] = perf_df['gains'] / perf_df['num']
-        perf_df = perf_df[['symbol', 'interval', 'classification', 'count', 'perf']]
-        return this_pattern, perf_df
-
-    def add_performance(self, w, pos):
-        """
-        """
-        this_pattern, all_patterns = self.win_loss_to_df(w, pos)
-        cells = all_patterns.transpose().values.tolist()
-        this_pattern = [[this_pattern['count'].sum()], [self._percent_render(this_pattern['gains'].mean())]]
-        red = 'rgb(50, 0, 0)'
-        black = 'black'
-        green = 'rgb(0, 50, 0)'
-        # set cell colors for performance
-        fill_colors = [
-            [red if v < 0.0 else green for v in cells[-1]]
-        ] * len(all_patterns)
-        cells[-1] = [self._percent_render(i) for i in cells[-1]]
-
-        if len(this_pattern):
-            self.main_plot.add_trace(
-                go.Table(
-                    domain=dict(
-                        x=[0.63, 1],
-                        y=[0.65, 0.7]
-                    ),
-                    header=dict(
-                        values=[f"{pos.symbol} {pos.interval} {pos.pattern.name} performance"],
-                        fill_color='darkslategray',
-                        font=dict(color=['rgb(255, 255, 255)'], size=26),
-                        height=50
-                    )
-                )
-            )
-
-            self.main_plot.add_trace(
-                go.Table(
-                    domain=dict(
-                        x=[0.63, 1],
-                        y=[0.55, 0.65]
-                    ),
-                    header=dict(
-                        values=['Historical Count', 'Return on investment'],
-                        line_color='darkslategray',
-                        fill_color=black,
-                        font=dict(color=['rgb(245, 245, 245)'] * 2, size=22),
-                        height=35
-                    ),
-                    cells=dict(
-                        values=this_pattern,
-                        line_color='darkslategray',
-                        fill_color=black,
-                        align='center',
-                        font=dict(color=['rgb(245, 245, 145)'] * 2, size=22),
-                        height=30,
-                    )
-                )
-            )
-
-        if len(all_patterns):
-            self.main_plot.add_trace(
-                go.Table(
-                    domain=dict(
-                        x=[0.63, 1],
-                        y=[0.50, 0.55]
-                    ),
-                    header=dict(
-                        values=[f"{pos.symbol} all pattern/timeframe performance"],
-                        fill_color='darkslategray',
-                        font=dict(color=['rgb(255, 255, 255)'], size=26),
-                        height=50
-                    )
-                )
-            )
-
-            self.main_plot.add_trace(
-                go.Table(
-                    domain=dict(
-                        x=[0.63, 1],
-                        y=[0.25, 0.50]
-                    ),
-                    header=dict(
-                        values=all_patterns.columns,
-                        fill_color=black,
-                        font=dict(color=['rgb(245, 245, 245)'] * len(cells), size=16),
-                        height=25
-                    ),
-                    cells=dict(
-                        values=cells,
-                        line_color='darkslategray',
-                        fill_color=fill_colors,
-                        align='left',
-                        font=dict(color=['rgb(245, 245, 145)'] * len(cells), size=18),
-                        height=30,
-                    )
-                )
-            )
-
-    def add_position(self, position, shape_width=0.1):
-        """
-        """
-        self._set_precision(position.strike)
+        self._set_precision(self.position.strike)
         # Add padding for target
         target_block_width = self.candle_gap * int(len(self.df) * shape_width)
-        chart_end_time = position.pattern.x[-1]
-        final_candle = self.df.iloc[-1][self.candle_data.df_index]
-        if not position.pattern.formed:
+        chart_end_time = self.position.pattern.x[-1]
+        final_candle = self.technicals.df.index[-1]
+        if not self.position.pattern.formed:
             self.pad_right(final_candle)
             chart_end_time = final_candle - (self.candle_gap * 3)
 
-        self.add_peaks()
-        self.add_harmonic_pattern(position.pattern)
-        self.add_pattern_completion_zone(position, target_block_width, chart_end_time)
-        self.add_price_target_blocks(position, target_block_width, chart_end_time)
-        self.add_position_outcomes(position)
+        self.add_harmonic_pattern(self.position.pattern)
+        self._add_pattern_completion_zone(target_block_width, chart_end_time)
+        self._add_price_target_blocks(target_block_width, chart_end_time)
+        self._add_position_outcomes()
 
-        targets = ",  ".join([f"Tp{n}: {self._price_render(t)}" for n, t in enumerate(position.targets, start=1)])
-        self.title = f"{self.candle_data.symbol}-{self.candle_data.interval}  Volatility = {self.technicals.volatility*100:.2f}% " + \
-                     f" --- {'Long' if position.long else 'Short'} Entry: {self._price_render(position.strike)}"
+        targets = ",  ".join([f"Tp{n}: {self._price_render(t)}" for n, t in enumerate(self.position.targets, start=1)])
+        self.title = f"{self.symbol}-{self.interval}" + \
+                     f" --- {'Long' if self.position.long else 'Short'} Entry: {self._price_render(self.position.strike)}"
 
     def pad_right(self, final_candle, num_candles=120):
         """

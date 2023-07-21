@@ -425,18 +425,3 @@ class Technicals:
                         # The is_bullish flag indicates the direction of the divergence ie. bullish or
                         self.divergences[ind][is_bullish][i] = 1
         return None
-
-    def _set_candle_gap(self):
-        """
-        Calculates the timedelta or epoch between candles.  Important for plotting for this block of data.
-        """
-        scalar, vector = int(self.interval[:-1]), self.interval[-1:]
-        times = {
-            'm': {'minutes': scalar},
-            'h': {'hours': scalar},
-            'd': {'days': scalar},
-            'w': {'days': scalar * 7},
-            'M': {'days': scalar * 30}
-        }
-        kwargs = times[vector]
-        self.candle_gap = datetime.timedelta(**kwargs)

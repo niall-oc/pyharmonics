@@ -1,5 +1,23 @@
 __author__ = 'github.com/niall-oc'
 
+# Positions
+STOP = 'stop'
+BUY = 'buy'
+SELL = 'sell'
+LIMIT = 'limit'
+LONG = 'long'
+SHORT = 'short'
+WAITING = 'waiting'  # Waiting to be traded
+OPENED = 'opened'
+STOPPED = 'stopped'
+CLOSED = 'closed'
+TARGET1 = 'target1'
+TARGET2 = 'target2'
+TARGET3 = 'target3'
+TARGET4 = 'target4'
+TARGET5 = 'target5'
+TARGETS = [TARGET1, TARGET2, TARGET3, TARGET4, TARGET5]
+
 DTS = 'dts'
 CLOSE_TIME = 'close_time'
 OPEN = 'open'
