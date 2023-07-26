@@ -13,7 +13,11 @@ Plot the findings.
 
 You will see something like this.
 
+<<<<<<< Updated upstream
 .. image:: ../images/newplot.png
+=======
+.. image:: images/newplot.png
+>>>>>>> Stashed changes
   :alt: Fully formed patterns
 
 See all harmonic patterns.
@@ -27,7 +31,11 @@ See all harmonic patterns.
 
 You will see something like this.
 
+<<<<<<< Updated upstream
 .. image:: ../images/all_patterns.png
+=======
+.. image:: images/all_patterns.png
+>>>>>>> Stashed changes
   :alt: Fully formed patterns
 
 See all forming patterns.
@@ -59,7 +67,7 @@ Position add_matrix_plots
 
 The most useful plot feature is the position plot.
 
-.. image:: ../images/all_ppositionplot.png
+.. image:: images/positionplot.png
   :alt: A tradable position.
 
 

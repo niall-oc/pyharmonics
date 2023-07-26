@@ -13,7 +13,7 @@ from pyharmonics.marketdata import BinanceCandleData
 import pandas as pd
 import datetime
 
-class PlotterBase:
+class HarmonicPlotterBase:
 
     def __init__(self, technicals: Technicals, symbol, interval, row_map=None, colors=None, plot_ema=False, plot_sma=True):
         self.technicals = technicals
@@ -389,9 +389,9 @@ class PlotterBase:
             )
         pio.write_image(self.main_plot, f"{location}", width=4 * dpi, height=2 * dpi, scale=1)
 
-class Plotter(PlotterBase):
+class HarmonicPlotter(HarmonicPlotterBase):
     def __init__(self, technicals: Technicals, symbol, interval, row_map=None, colors=None, plot_ema=False, plot_sma=True):
-        super(Plotter, self).__init__(technicals, symbol, interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
+        super(HarmonicPlotter, self).__init__(technicals, symbol, interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
         self.title = f"{self.symbol} {self.interval}"
         self.fonts = dict(
             font=dict(
@@ -420,9 +420,9 @@ class Plotter(PlotterBase):
             row_heights=heights
         )
 
-class PositionPlotter(PlotterBase):
+class HarmonicPositionPlotter(HarmonicPlotterBase):
     def __init__(self, technicals, position, row_map=None, colors=None, plot_ema=False, plot_sma=True):
-        super(PositionPlotter, self).__init__(technicals, position.symbol, position.pattern.interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
+        super(HarmonicPositionPlotter, self).__init__(technicals, position.symbol, position.pattern.interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
         self.title = f"{self.symbol} {self.interval}"
         self.fonts = dict(
             font=dict(

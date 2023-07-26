@@ -1,12 +1,12 @@
 from .technicals import Technicals
-from .plotter import PositionPlotter, Plotter
+from .plotter.harmonic import HarmonicPositionPlotter, HarmonicPlotter
 from .pattern import ABCPattern, ABCDPattern, XABCDPattern
 from .positions import Position
 
 __all__ = (
     Technicals,
-    PositionPlotter,
-    Plotter,
+    HarmonicPositionPlotter,
+    HarmonicPlotter,
     ABCPattern,
     ABCDPattern,
     XABCDPattern,
