@@ -1,7 +1,8 @@
 from .technicals import Technicals
 from .plotter.harmonic import HarmonicPositionPlotter, HarmonicPlotter
-from .pattern import ABCPattern, ABCDPattern, XABCDPattern
+from .patterns import ABCPattern, ABCDPattern, XABCDPattern
 from .positions import Position
+from .fundamentals import YahooFundamentals, YahooOptions
 
 __all__ = (
     Technicals,
@@ -10,5 +11,7 @@ __all__ = (
     ABCPattern,
     ABCDPattern,
     XABCDPattern,
-    Position
+    Position,
+    YahooFundamentals,
+    YahooOptions
 )
