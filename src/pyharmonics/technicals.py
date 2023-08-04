@@ -73,8 +73,10 @@ class Technicals:
         """
         Parameters
         ----------
-        candle_data: CandleDataBase child
-            A candle object holding a dataframe and meta information.
+        df: pandas.DataFrame
+            Must contain ['open', 'high', 'close', 'low', 'volume']
+        symbol: str
+        interval: str
         indicator_config : dict
             kw arguments for techincal indicators, stoch_rsi, rsi, mfi, cci and macd implemented
             defaults are  {

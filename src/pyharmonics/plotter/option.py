@@ -2,11 +2,15 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 class OptionPlotter:
-    def __init__(self, fundamentals, expiry):
-        self.options = fundamentals.options[expiry]
+    def __init__(self, yo, expiry):
+        """
+        :param pyharmonics.marketdata.YahooOptions yo: Option chain data for an asset
+        :param str expiry: Must be one of the expiry dates in yo.ticker.options
+        """
+        self.options = yo.options[expiry]
         self.expiry = expiry
-        self.price = fundamentals.price
-        self.symbol = fundamentals.symbol
+        self.price = yo.price
+        self.symbol = yo.symbol
         self.min_pain = self.options.min_pain
         self.fonts = dict(
             font=dict(
@@ -114,9 +118,8 @@ class OptionPlotter:
         self.main_plot.show()
 
 class OptionSurface:
-    def __init__(self, symbol, fundamentals):
-        self.symbol = symbol
-        self.fundamentals = fundamentals
+    def __init__(self, yo):
+        self.yo = yo
         self.fonts = dict(
             font=dict(
                 family="Courier New, monospace, bold",
@@ -126,7 +129,7 @@ class OptionSurface:
         )
         self.call_strikes = set()
         self.put_strikes = set()
-        for expiry, options in self.fundamentals.options.items():
+        for expiry, options in self.yo.options.items():
             self.call_strikes = self.call_strikes | set(options.calls['strike'])
             self.put_strikes = self.put_strikes | set(options.puts['strike'])
 
@@ -137,7 +140,7 @@ class OptionSurface:
                     "x": {
                         "show": True,
                         "start": 0,  # self.fundamentals.ticker.options[0],
-                        "end": len(self.fundamentals.ticker.options)  # [-1]
+                        "end": len(self.yo.ticker.options)  # [-1]
                     },
                     "y": {
                         "show": True,
@@ -145,11 +148,11 @@ class OptionSurface:
                         "end": self.call_strikes[-1]
                     },
                 },
-                y=self.fundamentals.ticker.options,
+                y=self.yo.ticker.options,
                 x=self.call_strikes,
                 z=[
-                    list(self.options.calls['openInterest'])
-                    for expiry in self.fundamentals.ticker.options
+                    list(self.yo.options[expiry].calls['openInterest'])
+                    for expiry in self.yo.ticker.options
                 ]
             )
         )
@@ -159,7 +162,7 @@ class OptionSurface:
             template='plotly_dark',
             showlegend=False,
             title={
-                'text': self.symbol,
+                'text': self.yo.symbol,
                 'y': 0.96,
                 'x': 0.5,
                 'xanchor': 'center',

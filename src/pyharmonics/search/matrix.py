@@ -2,9 +2,9 @@ __author__ = 'github.com/niall-oc'
 
 from pyharmonics import utils
 from pyharmonics import constants
-from pyharmonics.pattern import ABCDPattern, ABCPattern, XABCDPattern
+from pyharmonics.patterns import ABCDPattern, ABCPattern, XABCDPattern
 
-class MatrixSearch:
+class HarmonicSearch:
     """
 
     """

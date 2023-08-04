@@ -1,5 +1,5 @@
-from pyharmonics.marketdata import BinanceCandleData, YahooCandleData
-from pyharmonics.search import MatrixSearch
+from pyharmonics.marketdata import BinanceCandleData, YahooOptionsData
+from pyharmonics.search import HarmonicSearch
 from pyharmonics import Technicals, Position
 from pyharmonics.plotter.harmonic import HarmonicPlotter, HarmonicPositionPlotter
 from pyharmonics.plotter.option import OptionPlotter
@@ -13,7 +13,7 @@ b = BinanceCandleData()
 b._set_params('BTCUSDT', b.HOUR_1, 1000)
 b.df = pd.read_pickle("tests/data/btc_test_data")
 t = Technicals(b.df, b.symbol, b.interval, peak_spacing=10)
-m = MatrixSearch(t, fib_tolerance=0.03)
+m = HarmonicSearch(t, fib_tolerance=0.03)
 m.search()
 
 def test_technicals_plotter():
@@ -30,6 +30,7 @@ def test_position_plotter():
     p.show()
 
 def test_option_plotter():
-    t = yf.Ticker('NVDA')
-    p = OptionPlotter(t, top=30)
+    yo = YahooOptionsData('NVDA')
+    yo.analyse_options(trend='volume')
+    p = OptionPlotter(yo, yo.ticker.options[0])
     p.show()
