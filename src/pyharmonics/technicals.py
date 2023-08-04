@@ -146,6 +146,7 @@ class Technicals:
         self.df = self.as_df()
         self._build_peaks()
         # self._build_peak_slopes()
+        self.price = self.df[constants.CLOSE][-1]
 
     def as_df(self):
         if self.indicators:

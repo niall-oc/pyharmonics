@@ -27,21 +27,21 @@ class HarmonicPlotterBase:
             constants.BEARISH: {
                 constants.FORMED: {  # formed
                     'line': 'rgba(255, 127, 0, 0.6)',
-                    'fill': 'rgba(255, 127, 0, 0.15)'
+                    'fill': 'rgba(255, 127, 0, 0.10)'
                 },
                 constants.FORMING: {  # forming
                     'line': 'rgba(200, 0, 200, 0.6)',
-                    'fill': 'rgba(200, 0, 200, 0.15)'
+                    'fill': 'rgba(200, 0, 200, 0.10)'
                 }
             },
             constants.BULLISH: {
                 constants.FORMED: {  # formed
                     'line': 'rgba(0, 255, 0, 0.6)',
-                    'fill': 'rgba(0, 255, 0, 0.15)'
+                    'fill': 'rgba(0, 255, 0, 0.10)'
                 },
                 constants.FORMING: {  # forming
                     'line': 'rgba(200, 200, 0, 0.6)',
-                    'fill': 'rgba(200, 200, 0, 0.15)'
+                    'fill': 'rgba(200, 200, 0, 0.10)'
                 }
             }
         }
@@ -49,9 +49,9 @@ class HarmonicPlotterBase:
             'main': {'row': 1, 'col': 1, 'color': None, 'weight': 0.5},
             constants.VOLUME: {'row': 2, 'col': 1, 'color': None, 'weight': 0.1},
             Technicals.MACD: {'row': 3, 'col': 1, 'color': None, 'weight': 0.1},
-            Technicals.RSI: {'row': 4, 'col': 1, 'color': 'yellow', 'weight': 0.1},
-            Technicals.STOCH_RSI: {'row': 5, 'col': 1, 'color': 'cyan', 'weight': 0.1},
-            Technicals.BBP: {'row': 6, 'col': 1, 'color': 'blue', 'weight': 0.1},
+            Technicals.RSI: {'row': 4, 'col': 1, 'color': 'rgba(200, 200, 0, 0.90)', 'weight': 0.1},
+            Technicals.STOCH_RSI: {'row': 5, 'col': 1, 'color': 'rgba(0, 200, 200, 0.90)', 'weight': 0.1},
+            Technicals.BBP: {'row': 6, 'col': 1, 'color': 'rgba(0, 200, 0, 0.90)', 'weight': 0.1},
         }
         self._set_candle_gap()
 
@@ -158,7 +158,7 @@ class HarmonicPlotterBase:
                 y=rp,
                 fill="toself",
                 fillcolor=self.colors[p.bullish][p.formed]['fill'],
-                line=dict(color=self.colors[p.bullish][p.formed]['line'], width=1),
+                line=dict(color=self.colors[p.bullish][p.formed]['line'], width=2),
                 text=text[2:],
                 textposition="top center"
             )
@@ -423,7 +423,7 @@ class HarmonicPlotter(HarmonicPlotterBase):
 class HarmonicPositionPlotter(HarmonicPlotterBase):
     def __init__(self, technicals, position, row_map=None, colors=None, plot_ema=False, plot_sma=True):
         super(HarmonicPositionPlotter, self).__init__(technicals, position.symbol, position.pattern.interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
-        self.title = f"{self.symbol} {self.interval}"
+        self.title = f"{self.symbol} {self.interval} - price: {technicals.price:.4f}"
         self.fonts = dict(
             font=dict(
                 family="Courier New, monospace, bold",
