@@ -3,13 +3,11 @@ from plotly.subplots import make_subplots
 
 class OptionPlotter:
     def __init__(self, fundamentals, expiry):
-        self.calls = fundamentals.options[expiry].calls
-        self.puts = fundamentals.options[expiry].puts
-        self.losses = fundamentals.options[expiry].losses
+        self.options = fundamentals.options[expiry]
         self.expiry = expiry
         self.price = fundamentals.price
         self.symbol = fundamentals.symbol
-        self.min_pain = fundamentals.options[expiry].min_pain
+        self.min_pain = self.options.min_pain
         self.fonts = dict(
             font=dict(
                 family="Courier New, monospace, bold",
@@ -33,12 +31,6 @@ class OptionPlotter:
         }
         self.title = f"{self.symbol} - {self.expiry}"
         self.set_main_plot()
-        self.plot_trend('openInterest', 1, 1)
-        self.plot_price(self.price, 'Current price', 'openInterest', 1, 1)
-        self.plot_trend('losses', 2, 1)
-        self.plot_price(self.min_pain, 'Minimum_pain', 'losses', 2, 1)
-        self.plot_price(self.price, 'Current price', 'losses', 2, 1, height=0.4)
-        self.plot_losses(2, 1)
 
     def set_main_plot(self):
         self.main_plot = make_subplots(
@@ -59,13 +51,19 @@ class OptionPlotter:
             },
             **self.fonts
         )
+        self.plot_trend(self.options.trend, 1, 1)
+        self.plot_price(self.price, 'Current price', self.options.trend, 1, 1)
+        self.plot_trend('losses', 2, 1)
+        self.plot_price(self.options.min_pain, 'Minimum_pain', 'losses', 2, 1)
+        self.plot_price(self.price, 'Current price', 'losses', 2, 1, height=0.4)
+        self.plot_losses(2, 1)
 
     def plot_losses(self, row, col):
         self.main_plot.add_trace(
             go.Scatter(
                 mode='lines+markers',
-                x=self.losses['strike'],
-                y=self.losses['pain'],
+                x=self.options.losses['strike'],
+                y=self.options.losses['pain'],
                 fillcolor=self.colors['losses']['fill'],
                 line=dict(color=self.colors['losses']['line'], width=2),
                 fill='tozeroy'
@@ -74,7 +72,7 @@ class OptionPlotter:
         )
 
     def plot_price(self, price, label, against, row, col, height=0.8):
-        h = max(self.calls[against]) * height
+        h = (max(self.options.calls[against]) + max(self.options.puts[against])) * height / 2
         self.main_plot.add_trace(
             go.Scatter(
                 mode='lines+markers+text',
@@ -92,8 +90,8 @@ class OptionPlotter:
         self.main_plot.add_trace(
             go.Scatter(
                 mode='lines+markers',
-                x=self.calls['strike'],
-                y=self.calls[trend],
+                x=self.options.calls['strike'],
+                y=self.options.calls[trend],
                 fillcolor=self.colors['calls']['fill'],
                 line=dict(color=self.colors['calls']['line'], width=2),
                 fill='tozeroy'
@@ -103,8 +101,8 @@ class OptionPlotter:
         self.main_plot.add_trace(
             go.Scatter(
                 mode='lines+markers',
-                x=self.puts['strike'],
-                y=self.puts[trend],
+                x=self.options.puts['strike'],
+                y=self.options.puts[trend],
                 fillcolor=self.colors['puts']['fill'],
                 line=dict(color=self.colors['puts']['line'], width=2),
                 fill='tozeroy'
@@ -126,6 +124,11 @@ class OptionSurface:
             ),
             title_font_size=30
         )
+        self.call_strikes = set()
+        self.put_strikes = set()
+        for expiry, options in self.fundamentals.options.items():
+            self.call_strikes = self.call_strikes | set(options.calls['strike'])
+            self.put_strikes = self.put_strikes | set(options.puts['strike'])
 
     def set_main_plot(self):
         self.main_plot = go.Figure(
@@ -138,14 +141,14 @@ class OptionSurface:
                     },
                     "y": {
                         "show": True,
-                        "start": self.fundamentals.call_strikes[0],
-                        "end": self.fundamentals.call_strikes[-1]
+                        "start": self.call_strikes[0],
+                        "end": self.call_strikes[-1]
                     },
                 },
                 y=self.fundamentals.ticker.options,
-                x=self.fundamentals.call_strikes,
+                x=self.call_strikes,
                 z=[
-                    list(self.fundamentals.options[expiry].calls['openInterest'])
+                    list(self.options.calls['openInterest'])
                     for expiry in self.fundamentals.ticker.options
                 ]
             )

@@ -3,22 +3,23 @@ __author__ = 'github.com/niall-oc'
 import yfinance as yf
 
 class YahooOptions:
-    def __init__(self, option_chain, top):
+    def __init__(self, option_chain, top=30, trend='openInterest'):
         """
         :param yfinance.Ticker ticker: the yfinance Ticker object representing an asset.
         :params int top: the top 30 options, ranked by openInterest, are analyzed by default.
         """
+        self.trend = trend
         self.calls = option_chain.calls
-        self.calls = self.calls.sort_values(by=['openInterest', 'volume'], ascending=False)[:top]
+        self.calls = self.calls.sort_values(by=[trend], ascending=False)[:top]
         self.calls = self.calls.sort_values(by=['strike'])
-        self.calls['oi_cumsum'] = self.calls['openInterest'].cumsum()
+        self.calls['oi_cumsum'] = self.calls[trend].cumsum()
         limit = min(self.calls['strike'])
         self.calls['losses'] = self.calls.apply(lambda row: (row['strike'] - limit) * row['oi_cumsum'] * 100, axis=1)
 
         self.puts = option_chain.puts
-        self.puts = self.puts.sort_values(by=['openInterest', 'volume'], ascending=False)[:top]
+        self.puts = self.puts.sort_values(by=[trend], ascending=False)[:top]
         self.puts = self.puts.sort_values(by=['strike'])
-        self.puts['oi_cumsum'] = self.puts.loc[::-1, 'openInterest'].cumsum()[::-1]
+        self.puts['oi_cumsum'] = self.puts.loc[::-1, trend].cumsum()[::-1]
         limit = max(self.puts['strike'])
         self.puts['losses'] = self.puts.apply(lambda row: (limit - row['strike']) * row['oi_cumsum'] * 100, axis=1)
 
@@ -40,16 +41,10 @@ class YahooFundamentals:
         self.options = {}
         self.price = float(self.ticker.info['currentPrice'])
 
-    def analyse_options(self, top=30):
+    def analyse_options(self, top=30, trend='openInterest'):
         """
         :params int top: the top 30 options, ranked by openInterest, are analyzed by default.
         df = df.merge(right=fun.options[fun.ticker.options[4]].calls[['strike', 'openInterest']], on='strike', how='left', suffixes=['4', f'_{fun.ticker.options[4]}'])
         """
-        call_strikes = set()
-        put_strikes = set()
         for expiry in self.ticker.options:
-            self.options[expiry] = YahooOptions(self.ticker.option_chain(expiry), top)
-            call_strikes = call_strikes | set(self.options[expiry].calls['strike'])
-            put_strikes = put_strikes | set(self.options[expiry].puts['strike'])
-        self.call_strikes = list(sorted(call_strikes))
-        self.put_strikes = list(sorted(put_strikes))
+            self.options[expiry] = YahooOptions(self.ticker.option_chain(expiry), top=top, trend=trend)
