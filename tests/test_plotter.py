@@ -3,7 +3,6 @@ from pyharmonics.search import HarmonicSearch
 from pyharmonics import Technicals, Position
 from pyharmonics.plotter.harmonic import HarmonicPlotter, HarmonicPositionPlotter
 from pyharmonics.plotter.option import OptionPlotter
-import yfinance as yf
 import pandas as pd
 import datetime
 
@@ -30,7 +29,7 @@ def test_position_plotter():
     p.show()
 
 def test_option_plotter():
-    yo = YahooOptionsData('NVDA')
-    yo.analyse_options(trend='volume')
+    yo = YahooOptionsData('TSLA')
+    yo.analyse_options(trend='openInterest')
     p = OptionPlotter(yo, yo.ticker.options[0])
     p.show()

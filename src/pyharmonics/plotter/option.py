@@ -7,6 +7,7 @@ class OptionPlotter:
         :param pyharmonics.marketdata.YahooOptions yo: Option chain data for an asset
         :param str expiry: Must be one of the expiry dates in yo.ticker.options
         """
+        self.yo = yo
         self.options = yo.options[expiry]
         self.expiry = expiry
         self.price = yo.price
@@ -38,9 +39,9 @@ class OptionPlotter:
 
     def set_main_plot(self):
         self.main_plot = make_subplots(
-            rows=2, cols=2, shared_xaxes=True,
-            vertical_spacing=0.025,
-            row_heights=[.5, .5], column_widths=[.9, .1]
+            rows=2, cols=2, shared_xaxes=False,
+            vertical_spacing=0.1,
+            row_heights=[.5, .4], column_widths=[.6, .4]
         )
         self.main_plot.update_layout(
             xaxis_rangeslider_visible=False,
@@ -55,12 +56,45 @@ class OptionPlotter:
             },
             **self.fonts
         )
+        # Main options data
         self.plot_trend(self.options.trend, 1, 1)
         self.plot_price(self.price, 'Current price', self.options.trend, 1, 1)
+        self.main_plot.update_xaxes(title_text=f'Option {self.options.trend}', row=1, col=1)
+        self.main_plot.update_yaxes(title_text=f'Option {self.options.trend}', row=1, col=1)
+        # Max pain for this date
         self.plot_trend('losses', 2, 1)
         self.plot_price(self.options.min_pain, 'Minimum_pain', 'losses', 2, 1)
         self.plot_price(self.price, 'Current price', 'losses', 2, 1, height=0.4)
+        self.main_plot.update_xaxes(title_text=f'Max Pain {self.options.trend}', row=2, col=1)
+        self.main_plot.update_yaxes(title_text=f'Max Pain {self.options.trend}', row=2, col=1)
+        # Forward looking pain
         self.plot_losses(2, 1)
+        self.plot_pain(1, 2)
+        self.main_plot.update_xaxes(title_text='Forward looking pain', row=1, col=2)
+
+    def plot_pain(self, row, col):
+        self.main_plot.add_trace(
+            go.Scatter(
+                mode='lines+markers',
+                x=self.yo.ticker.options,
+                y=[self.yo.options[d].min_pain for d in self.yo.ticker.options],
+                fillcolor=self.colors['losses']['fill'],
+                line=dict(color=self.colors['losses']['line'], width=2),
+                fill='tozeroy'
+            ),
+            row=row, col=col
+        )
+        self.main_plot.add_trace(
+            go.Scatter(
+                mode='lines+markers+text',
+                y=[self.price, self.price],
+                x=[self.yo.ticker.options[0], self.yo.ticker.options[-2]],
+                line=dict(color='white', width=1),
+                text=['', f"spot: {self.price}"],
+                textposition="top center"
+            ),
+            row=row, col=col
+        )
 
     def plot_losses(self, row, col):
         self.main_plot.add_trace(
