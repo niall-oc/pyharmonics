@@ -13,7 +13,7 @@ import pandas as pd
 import datetime
 import abc
 
-class HarmonicPlotterBase(abc.ABC):
+class PlotterBase(abc.ABC):
     def __init__(self, technicals: OHLCTechnicals, title, time_horizon, row_map=None, colors=None, plot_ema=False, plot_sma=True, ignore_weekend=False):
         self.technicals = technicals
         self.title = title
@@ -90,16 +90,12 @@ class HarmonicPlotterBase(abc.ABC):
     def _percent_render(self, p):
         return f"{p:.2f}%"
 
-    def add_matrix_plots(self, patterns):
+    def add_harmonic_plots(self, pattern_data):
         """
         """
-        for p in patterns.values():
-            self.add_harmonic_plots(p)
-
-    def add_harmonic_plots(self, patterns):
-        # Legacy function TODO: remove
-        for p in patterns:
-            self.add_harmonic_pattern(p)
+        for family, patterns in pattern_data.items():
+            for p in patterns:
+                self.add_harmonic_pattern(p)
 
     def add_harmonic_pattern(self, p):
         """
@@ -402,7 +398,7 @@ class HarmonicPlotterBase(abc.ABC):
         pio.write_image(self.main_plot, f"{location}", width=4 * dpi, height=2 * dpi, scale=1)
 
 
-class HarmonicPlotter(HarmonicPlotterBase):
+class HarmonicPlotter(PlotterBase):
     def __init__(self, technicals: OHLCTechnicals, symbol, interval, row_map=None, colors=None, plot_ema=False, plot_sma=True):
         super(HarmonicPlotter, self).__init__(technicals, symbol, interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
         self.plot_title = f"{self.title} {self.time_horizon}"
@@ -433,9 +429,9 @@ class HarmonicPlotter(HarmonicPlotterBase):
             row_heights=heights
         )
 
-class HarmonicSTPlotter(HarmonicPlotterBase):
+class Plotter(PlotterBase):
     def __init__(self, technicals: OHLCTechnicals, symbol, interval, row_map=None, colors=None, plot_ema=False, plot_sma=True):
-        super(HarmonicSTPlotter, self).__init__(technicals, symbol, interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
+        super(Plotter, self).__init__(technicals, symbol, interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
         self.plot_title = f"{self.title} {self.time_horizon}"
         self.fonts = dict(
             font=dict(
@@ -471,9 +467,9 @@ class HarmonicSTPlotter(HarmonicPlotterBase):
         )
 
 
-class HarmonicPositionPlotter(HarmonicPlotterBase):
+class PositionPlotter(PlotterBase):
     def __init__(self, technicals, position, row_map=None, colors=None, plot_ema=False, plot_sma=True):
-        super(HarmonicPositionPlotter, self).__init__(technicals, position.symbol, position.pattern.interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
+        super(PositionPlotter, self).__init__(technicals, position.symbol, position.pattern.interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
         self.plot_title = f"{self.title} {self.time_horizon} - price: {technicals.spot:.4f}"
         self.fonts = dict(
             font=dict(

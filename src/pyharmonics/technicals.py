@@ -142,7 +142,7 @@ class TechnicalsBase(abc.ABC):
         self.df = self.as_df()
         self._build_peaks()
         # self._build_peak_slopes()
-        self.spot = self.df[constants.CLOSE][-1]
+        self.spot = self.df[constants.CLOSE].iloc[-1]
 
     def _build_peaks(self):
         """
@@ -370,9 +370,9 @@ class OHLCTechnicals(TechnicalsBase):
             raise ValueError('Unknown peak type requested')
         return x, y
 
-class SingleTechnicals(TechnicalsBase):
+class Technicals(TechnicalsBase):
     def __init__(self, df, symbol, interval, indicator_config=None, sma_config=None, ema_config=None, peak_spacing=10):
-        super(SingleTechnicals, self).__init__(df, indicator_config=indicator_config, sma_config=sma_config, peak_spacing=peak_spacing)
+        super(Technicals, self).__init__(df, indicator_config=indicator_config, sma_config=sma_config, peak_spacing=peak_spacing)
         self.symbol = symbol
         self.interval = interval
         self.df[self.PRICE_PEAKS] = np.int64(utils.find_peaks(self.df[constants.CLOSE].values, np.greater_equal, order=self.peak_spacing))

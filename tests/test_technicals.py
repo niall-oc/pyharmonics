@@ -1,7 +1,7 @@
 __author__ = 'github.com/niall-oc'
 
 from pyharmonics.marketdata import BinanceCandleData
-from pyharmonics.technicals import OHLCTechnicals, SingleTechnicals
+from pyharmonics.technicals import OHLCTechnicals, Technicals
 import pandas as pd
 import numpy as np
 
@@ -73,9 +73,9 @@ def test_rsi_peaks():
 
 def test_single_trend_technicals():
     of = pd.DataFrame(b.df[['close']])
-    st = SingleTechnicals(of)
+    st = Technicals(of, 'BTCUSDT', b.HOUR_1)
     assert len(of) > 0
-    assert SingleTechnicals.PRICE_PEAKS in list(t.df.columns)
+    assert Technicals.PRICE_PEAKS in list(t.df.columns)
 
 if __name__ == '__main__':
     # For debugging

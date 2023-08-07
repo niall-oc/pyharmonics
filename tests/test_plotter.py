@@ -1,7 +1,7 @@
 from pyharmonics.marketdata import BinanceCandleData, YahooOptionsData
 from pyharmonics.search import HarmonicSearch
-from pyharmonics import OHLCTechnicals, Position, SingleTechnicals
-from pyharmonics.plotter.harmonic import HarmonicPlotter, HarmonicPositionPlotter, HarmonicSTPlotter
+from pyharmonics import OHLCTechnicals, Position, Technicals
+from pyharmonics.plotter.harmonic import HarmonicPlotter, PositionPlotter, Plotter
 from pyharmonics.plotter.option import OptionPlotter
 import pandas as pd
 import datetime
@@ -18,24 +18,24 @@ m.search()
 def test_ohlc_technicals_plotter():
     p = HarmonicPlotter(t, 'BTCUSDT', b.HOUR_1)
     p.add_peaks()
-    p.add_matrix_plots(m.get_patterns(family=m.XABCD))
+    p.add_harmonic_plots(m.get_patterns(family=m.XABCD))
     p.show()
 
 def test_single_technicals_plotter():
     of = pd.DataFrame(b.df[['close']])
-    st = SingleTechnicals(of, 'BTSUSDT', b.HOUR_1)
+    st = Technicals(of, 'BTSUSDT', b.HOUR_1)
     sm = HarmonicSearch(st, fib_tolerance=0.06)
     sm.search()
-    p = HarmonicSTPlotter(st, 'BTCUSDT', b.HOUR_1)
+    p = Plotter(st, 'BTCUSDT', b.HOUR_1)
     p.add_peaks()
-    p.add_matrix_plots(sm.get_patterns(family=sm.XABCD))
+    p.add_harmonic_plots(sm.get_patterns(family=sm.XABCD))
     p.show()
 
 def test_position_plotter():
     patterns = m.get_patterns(family=m.XABCD)
     pattern = patterns[m.XABCD][0]
     position = Position(pattern, pattern.y[-1], 1000)
-    p = HarmonicPositionPlotter(t, position)
+    p = PositionPlotter(t, position)
     p.show()
 
 def test_option_plotter():
