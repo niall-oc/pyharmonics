@@ -6,11 +6,11 @@ from ta.momentum import RSIIndicator, StochRSIIndicator
 from ta.volatility import BollingerBands
 from pyharmonics import constants, utils
 import numpy as np
-import datetime
 import math
+import abc
 
 
-class Technicals:
+class TechnicalsBase(abc.ABC):
     """
     ALL candle data apis convert Kline or trend data into a pandas dataframe.
     The market_data dataframe uses DateTime as the index and
@@ -69,7 +69,7 @@ class Technicals:
     STOCH_RSI_PEAKS = 'stoch_rsi_peaks'
     STOCH_RSI_DIPS = 'stoch_rsi_dips'
 
-    def __init__(self, df, symbol, interval, indicator_config=None, sma_config=None, ema_config=None, peak_spacing=10):
+    def __init__(self, df, indicator_config=None, sma_config=None, ema_config=None, peak_spacing=10):
         """
         Parameters
         ----------
@@ -113,8 +113,6 @@ class Technicals:
             self.EMA_55: {'window': 55}
         }
         self.df = df
-        self.symbol = symbol
-        self.interval = interval
         self.peak_spacing = peak_spacing
         self.interval_map = {
             constants.WEEK_1: math.ceil(math.log(1) * 10),
@@ -133,8 +131,6 @@ class Technicals:
             raise ValueError('Candle DataFrame is None! call cd.get_candles(ASSET, INTERVAL) first.')
         elif not len(self.df):
             raise IndexError("Candle DataFrame is empty")
-        else:
-            self.set_peak_data()
 
     def set_peak_data(self):
         """
@@ -146,84 +142,7 @@ class Technicals:
         self.df = self.as_df()
         self._build_peaks()
         # self._build_peak_slopes()
-        self.price = self.df[constants.CLOSE][-1]
-
-    def as_df(self):
-        if self.indicators:
-            df = self.df.copy()
-            for indicator, trend in self.indicators.items():
-                df[indicator] = trend
-
-            for key in self.SMA_CONFIG:
-                df[key] = self.smas[key].sma_indicator()
-
-            for key in self.EMA_CONFIG:
-                df[key] = self.emas[key].ema_indicator()
-
-            return df
-
-        else:
-            return self.df.copy()
-
-    def _find_peaks(self, data, comparator, axis=0, order=1, mode='clip'):
-        """
-        Calculate the relative extrema of `data`.
-        Relative extrema are calculated by finding locations where
-        ``comparator(data[n], data[n+1:n+order+1])`` is True.
-        Parameters
-        ----------
-        data : ndarray
-            Array in which to find the relative extrema.
-        comparator : callable
-            Function to use to compare two data points.
-            Should take two arrays as arguments.
-        axis : int, optional
-            Axis over which to select from `data`. Default is 0.
-        order : int, optional
-            How many points on each side to use for the comparison
-            to consider ``comparator(n,n+x)`` to be True.
-        mode : str, optional
-            How the edges of the vector are treated. 'wrap' (wrap around) or
-            'clip' (treat overflow as the same as the last (or first) element).
-            Default 'clip'. See numpy.take.
-        Returns
-        -------
-        extrema : ndarray
-            Boolean array of the same shape as `data` that is True at an extrema,
-            False otherwise.
-        See also
-        --------
-        argrelmax, argrelmin
-        Examples
-        --------
-        >>> import numpy as np
-        >>> testdata = np.array([1,2,3,2,1])
-        >>> self.find_peaks(testdata, np.greater, axis=0)
-        array([False, False,  True, False, False], dtype=bool)
-        """
-        if (int(order) != order) or (order < 1):
-            raise ValueError('Order must be an int >= 1')
-
-        datalen = data.shape[axis]
-        locs = np.arange(0, datalen)
-
-        results = np.ones(data.shape, dtype=bool)
-        main = data.take(locs, axis=axis, mode=mode)
-        for shift in range(1, order + 1):
-            plus = data.take(locs + shift, axis=axis, mode=mode)
-            minus = data.take(locs - shift, axis=axis, mode=mode)
-            results &= comparator(main, plus)
-            results &= comparator(main, minus)
-            if ~results.any():
-                break
-        # Calculate plateaus
-        plateaus = (data == np.roll(data, 1))
-        for i in range(len(plateaus)):
-            # Just passed a plateau
-            if plateaus[i]:
-                # Remove the first registered peak in a plateau leaving the latter only as a peak
-                results[i - 1] = False
-        return results
+        self.spot = self.df[constants.CLOSE][-1]
 
     def _build_peaks(self):
         """
@@ -238,12 +157,10 @@ class Technicals:
         list of tuples, peak_idx, peak_price
 
         """
-        self.df[self.PRICE_PEAKS] = np.int64(self._find_peaks(self.df[constants.HIGH].values, np.greater_equal, order=self.peak_spacing))
-        self.df[self.PRICE_DIPS] = np.int64(self._find_peaks(self.df[constants.LOW].values, np.less_equal, order=self.peak_spacing))
-        self.df[self.MACD_PEAKS] = np.int64(self._find_peaks(self.indicators[self.MACD].values, np.greater_equal, order=self.peak_spacing))
-        self.df[self.MACD_DIPS] = np.int64(self._find_peaks(self.indicators[self.MACD].values, np.less_equal, order=self.peak_spacing))
-        self.df[self.RSI_PEAKS] = np.int64(self._find_peaks(self.indicators[self.RSI].values, np.greater_equal, order=self.peak_spacing))
-        self.df[self.RSI_DIPS] = np.int64(self._find_peaks(self.indicators[self.RSI].values, np.less_equal, order=self.peak_spacing))
+        self.df[self.MACD_PEAKS] = np.int64(utils.find_peaks(self.indicators[self.MACD].values, np.greater_equal, order=self.peak_spacing))
+        self.df[self.MACD_DIPS] = np.int64(utils.find_peaks(self.indicators[self.MACD].values, np.less_equal, order=self.peak_spacing))
+        self.df[self.RSI_PEAKS] = np.int64(utils.find_peaks(self.indicators[self.RSI].values, np.greater_equal, order=self.peak_spacing))
+        self.df[self.RSI_DIPS] = np.int64(utils.find_peaks(self.indicators[self.RSI].values, np.less_equal, order=self.peak_spacing))
         # Special case to remove false peaks and dips in MACD readings.
         self.df[self.MACD_PEAKS] = self.df.apply(lambda row: np.int64(row[self.MACD] >= 0 and row[self.MACD_PEAKS] > 0), axis=1)
         self.df[self.MACD_DIPS] = self.df.apply(lambda row: np.int64(row[self.MACD] < 0 and row[self.MACD_DIPS] > 0), axis=1)
@@ -276,6 +193,23 @@ class Technicals:
             }
         }
 
+    def as_df(self):
+        if self.indicators:
+            df = self.df.copy()
+            for indicator, trend in self.indicators.items():
+                df[indicator] = trend
+
+            for key in self.SMA_CONFIG:
+                df[key] = self.smas[key].sma_indicator()
+
+            for key in self.EMA_CONFIG:
+                df[key] = self.emas[key].ema_indicator()
+
+            return df
+
+        else:
+            return self.df.copy()
+
     def _set_moving_avergaes(self):
         self.smas = {}
         for ma, config in self.SMA_CONFIG.items():
@@ -300,37 +234,9 @@ class Technicals:
             if array[i - 1] is None:
                 array[i - 1] = array[i]
 
-    @classmethod
-    def line_slope(y2: float, y1: float, x2: int, x1: int) -> float:
-        y_diff = y2 - y1
-        if bool(y_diff):
-            return y_diff / (x2 - x1)
-        else:
-            return 0
-
-    def get_peak_x_y(self, peak_type):
-        """
-        Given the indexs of a pattern ( not a dataframe ) found in this technical data,
-        return the time and prices at those indexes.
-
-        Parameters
-        ----------
-        peak_type: str
-            The series containing True or False where True marks a peak on this trend
-
-        """
-        x = np.nonzero(self.df[peak_type].values)[0]
-        if peak_type == self.PRICE_PEAKS:
-            y = self.df[constants.HIGH].values[x]
-        elif peak_type == self.PRICE_DIPS:
-            y = self.df[constants.LOW].values[x]
-        elif peak_type == self.MACD_PEAKS or peak_type == self.MACD_DIPS:
-            y = self.df[self.MACD].values[x]
-        elif peak_type == self.RSI_PEAKS or peak_type == self.RSI_DIPS:
-            y = self.df[self.RSI].values[x]
-        else:
-            raise ValueError('Unknown peak type requested')
-        return x, y
+    @abc.abstractmethod
+    def get_peak_x_y(self):
+        pass
 
     def get_index_x(self, x):
         """
@@ -430,3 +336,67 @@ class Technicals:
                         # The is_bullish flag indicates the direction of the divergence ie. bullish or
                         self.divergences[ind][is_bullish][i] = 1
         return None
+
+class OHLCTechnicals(TechnicalsBase):
+    def __init__(self, df, symbol, interval, indicator_config=None, sma_config=None, ema_config=None, peak_spacing=10):
+        super(OHLCTechnicals, self).__init__(df, indicator_config=indicator_config, sma_config=sma_config, peak_spacing=peak_spacing)
+        self.symbol = symbol
+        self.interval = interval
+        self.df[self.PRICE_PEAKS] = np.int64(utils.find_peaks(self.df[constants.HIGH].values, np.greater_equal, order=self.peak_spacing))
+        self.df[self.PRICE_DIPS] = np.int64(utils.find_peaks(self.df[constants.LOW].values, np.less_equal, order=self.peak_spacing))
+        self.set_peak_data()
+
+    def get_peak_x_y(self, peak_type):
+        """
+        Given the indexs of a pattern ( not a dataframe ) found in this technical data,
+        return the time and prices at those indexes.
+
+        Parameters
+        ----------
+        peak_type: str
+            The series containing True or False where True marks a peak on this trend
+
+        """
+        x = np.nonzero(self.df[peak_type].values)[0]
+        if peak_type == self.PRICE_PEAKS:
+            y = self.df[constants.HIGH].values[x]
+        elif peak_type == self.PRICE_DIPS:
+            y = self.df[constants.LOW].values[x]
+        elif peak_type == self.MACD_PEAKS or peak_type == self.MACD_DIPS:
+            y = self.df[self.MACD].values[x]
+        elif peak_type == self.RSI_PEAKS or peak_type == self.RSI_DIPS:
+            y = self.df[self.RSI].values[x]
+        else:
+            raise ValueError('Unknown peak type requested')
+        return x, y
+
+class SingleTechnicals(TechnicalsBase):
+    def __init__(self, df, indicator_config=None, sma_config=None, ema_config=None, peak_spacing=10):
+        super(SingleTechnicals, self).__init__(df, indicator_config=indicator_config, sma_config=sma_config, peak_spacing=peak_spacing)
+        self.df[self.PRICE_PEAKS] = np.int64(utils.find_peaks(self.df[constants.CLOSE].values, np.greater_equal, order=self.peak_spacing))
+        self.df[self.PRICE_DIPS] = np.int64(utils.find_peaks(self.df[constants.CLOSE].values, np.less_equal, order=self.peak_spacing))
+        self.set_peak_data()
+
+    def get_peak_x_y(self, peak_type):
+        """
+        Given the indexs of a pattern ( not a dataframe ) found in this technical data,
+        return the time and prices at those indexes.
+
+        Parameters
+        ----------
+        peak_type: str
+            The series containing True or False where True marks a peak on this trend
+
+        """
+        x = np.nonzero(self.df[peak_type].values)[0]
+        if peak_type == self.PRICE_PEAKS:
+            y = self.df[constants.CLOSE].values[x]
+        elif peak_type == self.PRICE_DIPS:
+            y = self.df[constants.CLOSE].values[x]
+        elif peak_type == self.MACD_PEAKS or peak_type == self.MACD_DIPS:
+            y = self.df[self.MACD].values[x]
+        elif peak_type == self.RSI_PEAKS or peak_type == self.RSI_DIPS:
+            y = self.df[self.RSI].values[x]
+        else:
+            raise ValueError('Unknown peak type requested')
+        return x, y

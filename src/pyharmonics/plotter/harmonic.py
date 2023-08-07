@@ -8,14 +8,14 @@ Created on Mon Nov  1 17:02:46 2021
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.io as pio
-from pyharmonics import constants, Technicals
+from pyharmonics import constants, OHLCTechnicals
 from pyharmonics.marketdata import BinanceCandleData
 import pandas as pd
 import datetime
 
 class HarmonicPlotterBase:
 
-    def __init__(self, technicals: Technicals, symbol, interval, row_map=None, colors=None, plot_ema=False, plot_sma=True):
+    def __init__(self, technicals: OHLCTechnicals, symbol, interval, row_map=None, colors=None, plot_ema=False, plot_sma=True):
         self.technicals = technicals
         self.df = technicals.as_df()
         self.date_series = self.df.index
@@ -48,10 +48,10 @@ class HarmonicPlotterBase:
         self.ROW_MAP = row_map or {
             'main': {'row': 1, 'col': 1, 'color': None, 'weight': 0.5},
             constants.VOLUME: {'row': 2, 'col': 1, 'color': None, 'weight': 0.1},
-            Technicals.MACD: {'row': 3, 'col': 1, 'color': None, 'weight': 0.1},
-            Technicals.RSI: {'row': 4, 'col': 1, 'color': 'rgba(200, 200, 0, 0.90)', 'weight': 0.1},
-            Technicals.STOCH_RSI: {'row': 5, 'col': 1, 'color': 'rgba(0, 200, 200, 0.90)', 'weight': 0.1},
-            Technicals.BBP: {'row': 6, 'col': 1, 'color': 'rgba(0, 200, 0, 0.90)', 'weight': 0.1},
+            OHLCTechnicals.MACD: {'row': 3, 'col': 1, 'color': None, 'weight': 0.1},
+            OHLCTechnicals.RSI: {'row': 4, 'col': 1, 'color': 'rgba(200, 200, 0, 0.90)', 'weight': 0.1},
+            OHLCTechnicals.STOCH_RSI: {'row': 5, 'col': 1, 'color': 'rgba(0, 200, 200, 0.90)', 'weight': 0.1},
+            OHLCTechnicals.BBP: {'row': 6, 'col': 1, 'color': 'rgba(0, 200, 0, 0.90)', 'weight': 0.1},
         }
         self._set_candle_gap()
 
@@ -390,7 +390,7 @@ class HarmonicPlotterBase:
         pio.write_image(self.main_plot, f"{location}", width=4 * dpi, height=2 * dpi, scale=1)
 
 class HarmonicPlotter(HarmonicPlotterBase):
-    def __init__(self, technicals: Technicals, symbol, interval, row_map=None, colors=None, plot_ema=False, plot_sma=True):
+    def __init__(self, technicals: OHLCTechnicals, symbol, interval, row_map=None, colors=None, plot_ema=False, plot_sma=True):
         super(HarmonicPlotter, self).__init__(technicals, symbol, interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
         self.title = f"{self.symbol} {self.interval}"
         self.fonts = dict(
@@ -423,7 +423,7 @@ class HarmonicPlotter(HarmonicPlotterBase):
 class HarmonicPositionPlotter(HarmonicPlotterBase):
     def __init__(self, technicals, position, row_map=None, colors=None, plot_ema=False, plot_sma=True):
         super(HarmonicPositionPlotter, self).__init__(technicals, position.symbol, position.pattern.interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
-        self.title = f"{self.symbol} {self.interval} - price: {technicals.price:.4f}"
+        self.title = f"{self.symbol} {self.interval} - price: {technicals.spot:.4f}"
         self.fonts = dict(
             font=dict(
                 family="Courier New, monospace, bold",
