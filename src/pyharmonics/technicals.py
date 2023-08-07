@@ -371,8 +371,10 @@ class OHLCTechnicals(TechnicalsBase):
         return x, y
 
 class SingleTechnicals(TechnicalsBase):
-    def __init__(self, df, indicator_config=None, sma_config=None, ema_config=None, peak_spacing=10):
+    def __init__(self, df, symbol, interval, indicator_config=None, sma_config=None, ema_config=None, peak_spacing=10):
         super(SingleTechnicals, self).__init__(df, indicator_config=indicator_config, sma_config=sma_config, peak_spacing=peak_spacing)
+        self.symbol = symbol
+        self.interval = interval
         self.df[self.PRICE_PEAKS] = np.int64(utils.find_peaks(self.df[constants.CLOSE].values, np.greater_equal, order=self.peak_spacing))
         self.df[self.PRICE_DIPS] = np.int64(utils.find_peaks(self.df[constants.CLOSE].values, np.less_equal, order=self.peak_spacing))
         self.set_peak_data()

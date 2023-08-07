@@ -9,20 +9,20 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.io as pio
 from pyharmonics import constants, OHLCTechnicals
-from pyharmonics.marketdata import BinanceCandleData
 import pandas as pd
 import datetime
+import abc
 
-class HarmonicPlotterBase:
-
-    def __init__(self, technicals: OHLCTechnicals, symbol, interval, row_map=None, colors=None, plot_ema=False, plot_sma=True):
+class HarmonicPlotterBase(abc.ABC):
+    def __init__(self, technicals: OHLCTechnicals, title, time_horizon, row_map=None, colors=None, plot_ema=False, plot_sma=True, ignore_weekend=False):
         self.technicals = technicals
+        self.title = title
+        self.time_horizon = time_horizon
         self.df = technicals.as_df()
         self.date_series = self.df.index
         self.plot_ema = plot_ema
         self.plot_sma = plot_sma
-        self.symbol = symbol
-        self.interval = interval
+        self.ignore_weekend = ignore_weekend
         self.colors = colors or {
             constants.BEARISH: {
                 constants.FORMED: {  # formed
@@ -59,7 +59,7 @@ class HarmonicPlotterBase:
         """
         Calculates the timedelta or epoch between candles.  Important for plotting for this block of data.
         """
-        scalar, vector = int(self.interval[:-1]), self.interval[-1:]
+        scalar, vector = int(self.time_horizon[:-1]), self.time_horizon[-1:]
         times = {
             'm': {'minutes': scalar},
             'h': {'hours': scalar},
@@ -337,17 +337,29 @@ class HarmonicPlotterBase:
             # dict(values=["2022-11-24", "2022-12-25", "2023-01-01"])
         ])
 
+    def _create_main_plot(self):
+        if isinstance(self.technicals, OHLCTechnicals):
+            self.main_plot.add_trace(
+                go.Candlestick(
+                    x=self.date_series,
+                    open=self.df[constants.OPEN],
+                    high=self.df[constants.HIGH],
+                    close=self.df[constants.CLOSE],
+                    low=self.df[constants.LOW],
+                ),
+                row=self.ROW_MAP['main']['row'], col=self.ROW_MAP['main']['col']
+            )
+        else:
+            self.main_plot.add_trace(
+                go.Scatter(
+                    x=self.date_series,
+                    y=self.df[constants.CLOSE]
+                ),
+                row=self.ROW_MAP['main']['row'], col=self.ROW_MAP['main']['col']
+            )
+
     def set_main_plot(self):
-        self.main_plot.add_trace(
-            go.Candlestick(
-                x=self.date_series,
-                open=self.df[constants.OPEN],
-                high=self.df[constants.HIGH],
-                close=self.df[constants.CLOSE],
-                low=self.df[constants.LOW],
-            ),
-            row=self.ROW_MAP['main']['row'], col=self.ROW_MAP['main']['col']
-        )
+        self._create_main_plot()
         if self.plot_ema:
             self.main_plot.add_trace(go.Scatter(x=self.date_series, y=self.df[self.technicals.EMA_5], line=dict(color='rgba(64, 64, 255, 1)', width=1)))
             self.main_plot.add_trace(go.Scatter(x=self.date_series, y=self.df[self.technicals.EMA_8], line=dict(color='rgba(64, 255, 255, 1)', width=1)))
@@ -366,7 +378,7 @@ class HarmonicPlotterBase:
             template='plotly_dark',
             showlegend=False,
             title={
-                'text': self.title,
+                'text': self.plot_title,
                 'y': 0.96,
                 'x': 0.5,
                 'xanchor': 'center',
@@ -380,7 +392,7 @@ class HarmonicPlotterBase:
 
     def save_plot_image(self, location, dpi=600):
         # self.add_watermark('/home/xual/Software/xual/images/cybertron.jpg')
-        if self.technicals.candle_data.source != BinanceCandleData.source and self.technicals.candle_data.interval != constants.DAY_1:
+        if self.ignore_weekend:
             self.main_plot.update_xaxes(
                 rangebreaks=[
                     dict(bounds=['sat', 'mon']),
@@ -389,10 +401,11 @@ class HarmonicPlotterBase:
             )
         pio.write_image(self.main_plot, f"{location}", width=4 * dpi, height=2 * dpi, scale=1)
 
+
 class HarmonicPlotter(HarmonicPlotterBase):
     def __init__(self, technicals: OHLCTechnicals, symbol, interval, row_map=None, colors=None, plot_ema=False, plot_sma=True):
         super(HarmonicPlotter, self).__init__(technicals, symbol, interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
-        self.title = f"{self.symbol} {self.interval}"
+        self.plot_title = f"{self.title} {self.time_horizon}"
         self.fonts = dict(
             font=dict(
                 family="Courier New, monospace, bold",
@@ -420,10 +433,48 @@ class HarmonicPlotter(HarmonicPlotterBase):
             row_heights=heights
         )
 
+class HarmonicSTPlotter(HarmonicPlotterBase):
+    def __init__(self, technicals: OHLCTechnicals, symbol, interval, row_map=None, colors=None, plot_ema=False, plot_sma=True):
+        super(HarmonicSTPlotter, self).__init__(technicals, symbol, interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
+        self.plot_title = f"{self.title} {self.time_horizon}"
+        self.fonts = dict(
+            font=dict(
+                family="Courier New, monospace, bold",
+                size=15
+            ),
+            title_font_size=38
+        )
+        self.ROW_MAP = row_map or {
+            'main': {'row': 1, 'col': 1, 'color': None, 'weight': 0.5},
+            OHLCTechnicals.MACD: {'row': 2, 'col': 1, 'color': None, 'weight': 0.125},
+            OHLCTechnicals.RSI: {'row': 3, 'col': 1, 'color': 'rgba(200, 200, 0, 0.90)', 'weight': 0.125},
+            OHLCTechnicals.STOCH_RSI: {'row': 4, 'col': 1, 'color': 'rgba(0, 200, 200, 0.90)', 'weight': 0.125},
+            OHLCTechnicals.BBP: {'row': 5, 'col': 1, 'color': 'rgba(0, 200, 0, 0.90)', 'weight': 0.125},
+        }
+        self.set_sub_plots()
+        self.set_main_plot()
+
+        for ind in self.technicals.indicators:
+            if ind == self.technicals.MACD:
+                self.add_macd_plot()
+            else:
+                self.add_indicator_plot(ind)
+
+    def set_sub_plots(self):
+        space = 1 - (self.ROW_MAP['main']['weight'])
+        indicator_height = space / len(self.technicals.indicators)
+        heights = [self.ROW_MAP['main']['weight']] + [indicator_height for _ in self.technicals.indicators]
+        self.main_plot = make_subplots(
+            rows=len(heights), shared_xaxes=True,
+            vertical_spacing=0.025,
+            row_heights=heights
+        )
+
+
 class HarmonicPositionPlotter(HarmonicPlotterBase):
     def __init__(self, technicals, position, row_map=None, colors=None, plot_ema=False, plot_sma=True):
         super(HarmonicPositionPlotter, self).__init__(technicals, position.symbol, position.pattern.interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
-        self.title = f"{self.symbol} {self.interval} - price: {technicals.spot:.4f}"
+        self.plot_title = f"{self.title} {self.time_horizon} - price: {technicals.spot:.4f}"
         self.fonts = dict(
             font=dict(
                 family="Courier New, monospace, bold",
@@ -618,9 +669,8 @@ class HarmonicPositionPlotter(HarmonicPlotterBase):
         self._add_price_target_blocks(target_block_width, chart_end_time)
         self._add_position_outcomes()
 
-        targets = ",  ".join([f"Tp{n}: {self._price_render(t)}" for n, t in enumerate(self.position.targets, start=1)])
-        self.title = f"{self.symbol}-{self.interval}" + \
-                     f" --- {'Long' if self.position.long else 'Short'} Entry: {self._price_render(self.position.strike)}"
+        self.plot_title = f"{self.plot_title}-{self.time_horizon}" + \
+                          f" --- {'Long' if self.position.long else 'Short'} Entry: {self._price_render(self.position.strike)}"
 
     def pad_right(self, final_candle, num_candles=120):
         """
