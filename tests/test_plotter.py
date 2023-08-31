@@ -16,7 +16,7 @@ m = HarmonicSearch(t, fib_tolerance=0.03)
 m.search()
 
 def test_ohlc_technicals_plotter():
-    p = HarmonicPlotter(t, 'BTCUSDT', b.HOUR_1)
+    p = HarmonicPlotter(t)
     p.add_peaks()
     p.add_harmonic_plots(m.get_patterns(family=m.XABCD))
     p.show()
@@ -26,7 +26,7 @@ def test_single_technicals_plotter():
     st = Technicals(of, 'BTSUSDT', b.HOUR_1)
     sm = HarmonicSearch(st, fib_tolerance=0.06)
     sm.search()
-    p = Plotter(st, 'BTCUSDT', b.HOUR_1)
+    p = Plotter(st)
     p.add_peaks()
     p.add_harmonic_plots(sm.get_patterns(family=sm.XABCD))
     p.show()
@@ -39,7 +39,7 @@ def test_position_plotter():
     p.show()
 
 def test_option_plotter():
-    yo = YahooOptionsData('PLTR')
+    yo = YahooOptionsData('NVDA')
     yo.analyse_options(trend='volume')
     p = OptionPlotter(yo, yo.ticker.options[0])
     p.show()

@@ -14,9 +14,9 @@ import datetime
 import abc
 
 class PlotterBase(abc.ABC):
-    def __init__(self, technicals: OHLCTechnicals, title, time_horizon, row_map=None, colors=None, plot_ema=False, plot_sma=True, ignore_weekend=False):
+    def __init__(self, technicals: OHLCTechnicals, title=None, time_horizon=None, row_map=None, colors=None, plot_ema=False, plot_sma=True, ignore_weekend=False):
         self.technicals = technicals
-        self.title = title
+        self.title = title or 'chart'
         self.time_horizon = time_horizon
         self.df = technicals.as_df()
         self.date_series = self.df.index
@@ -399,8 +399,9 @@ class PlotterBase(abc.ABC):
 
 
 class HarmonicPlotter(PlotterBase):
-    def __init__(self, technicals: OHLCTechnicals, symbol, interval, row_map=None, colors=None, plot_ema=False, plot_sma=True):
-        super(HarmonicPlotter, self).__init__(technicals, symbol, interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
+    def __init__(self, technicals: OHLCTechnicals, row_map=None, colors=None, plot_ema=False, plot_sma=True):
+        super(HarmonicPlotter, self).__init__(technicals, title=technicals.symbol, time_horizon=technicals.interval,
+                                              row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
         self.plot_title = f"{self.title} {self.time_horizon}"
         self.fonts = dict(
             font=dict(
@@ -430,8 +431,8 @@ class HarmonicPlotter(PlotterBase):
         )
 
 class Plotter(PlotterBase):
-    def __init__(self, technicals: OHLCTechnicals, symbol, interval, row_map=None, colors=None, plot_ema=False, plot_sma=True):
-        super(Plotter, self).__init__(technicals, symbol, interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
+    def __init__(self, technicals: OHLCTechnicals, row_map=None, colors=None, plot_ema=False, plot_sma=True):
+        super(Plotter, self).__init__(technicals, title=technicals.symbol, time_horizon=technicals.interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
         self.plot_title = f"{self.title} {self.time_horizon}"
         self.fonts = dict(
             font=dict(
@@ -469,7 +470,8 @@ class Plotter(PlotterBase):
 
 class PositionPlotter(PlotterBase):
     def __init__(self, technicals, position, row_map=None, colors=None, plot_ema=False, plot_sma=True):
-        super(PositionPlotter, self).__init__(technicals, position.symbol, position.pattern.interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
+        super(PositionPlotter, self).__init__(technicals, title=position.symbol, time_horizon=position.pattern.interval,
+                                              row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
         self.plot_title = f"{self.title} {self.time_horizon} - price: {technicals.spot:.4f}"
         self.fonts = dict(
             font=dict(
