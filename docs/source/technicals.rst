@@ -1,7 +1,7 @@
 Using the OHLCTechnicals object on OHLC Data
-----------------------------------------
+--------------------------------------------
+
 .. code-block:: python
-    :linenos:
 
     >>> from pyharmonics.marketdata import BinanceCandleData
     >>> from pyharmonics.technicals import OHLCTechnicals
@@ -18,7 +18,6 @@ Using the OHLCTechnicals object on OHLC Data
     Always remember to get candle data :-)
 
 .. code-block:: python
-    :linenos:
 
     >>> b.get_candles('ETHUSDT', b.HOUR_4, 400)
     >>> b.df
@@ -55,10 +54,10 @@ Using the OHLCTechnicals object on OHLC Data
 
     [400 rows x 27 columns]
 
-As you can see the Techicals object adds more technical data to the dataframe.  This is the foundation for the harmonic object to discover and plot harmonic trading patterns. Tehcnicals object has an additional parameter called ``peak_spacing`` which determines the sensitivity to peaks.  Lower number is more sensitive.
+
+Peak sensitivity can be increased like so.
 
 .. code-block:: python
-    :linenos:
 
     >>> t = Technicals(b.df, peak_spacing=12)
 
@@ -68,9 +67,8 @@ As you can see the Techicals object adds more technical data to the dataframe.  
 
 
 Using the standard Technicals object on single trend data
-----------------------------------------
+---------------------------------------------------------
 .. code-block:: python
-    :linenos:
 
     >>> from pyharmonics.technicals import Technicals
     >>> from pyharmonics.utils import UER
@@ -90,13 +88,11 @@ Using the standard Technicals object on single trend data
     126  2023-07-01    3.5            0           0  0.080380  40.030762   0.794174  ...  3.905714  4.254912  4.579774           1          0          0         0
 
     [127 rows x 22 columns]
-    
 
 
 Technicals.df schema
 ~~~~~~~~~~~~~~~~~~~~
 .. code-block:: python
-    :linenos:
     
     >>> t.df.columns
     Index(['open', 'high', 'low', 'close', 'volume', 'close_time', 'dts', 'macd',
