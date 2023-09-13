@@ -26,10 +26,10 @@ class YahooOptionChain:
         self.puts['losses'] = self.puts.apply(lambda row: (limit - row['strike']) * row['oi_cumsum'] * 100, axis=1)
 
         self.losses = self.calls[['strike', 'losses']].merge(self.puts[['strike', 'losses']], on='strike', how='outer').sort_values(by='strike')
-        self.losses['losses_x'] = self.losses['losses_x'].fillna(0.0)
-        self.losses['losses_y'] = self.losses['losses_y'].fillna(0.0)
+        self.losses['losses_x'] = self.losses['losses_x'].ffill().fillna(0.0)
+        self.losses['losses_y'] = self.losses['losses_y'].bfill().fillna(0.0)
         self.losses['pain'] = self.losses['losses_x'] + self.losses['losses_y']
-        self.losses['pain'] = self.losses['pain'].map(lambda x: x or None).ffill().bfill().fillna(0.0)
+        self.losses['pain'] = self.losses['pain'].map(lambda x: x or None).ffill().bfill()
         self.min_pain = list(self.losses.loc[self.losses['pain'] == min(self.losses['pain'])].to_dict()['strike'].values())[0]
 
 
