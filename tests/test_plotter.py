@@ -1,8 +1,8 @@
 from pyharmonics.marketdata import BinanceCandleData, YahooOptionsData
 from pyharmonics.search import HarmonicSearch
 from pyharmonics import OHLCTechnicals, Position, Technicals
-from pyharmonics.plotter.harmonic import HarmonicPlotter, PositionPlotter, Plotter
-from pyharmonics.plotter.option import OptionPlotter
+from pyharmonics.plotter import HarmonicPlotter, PositionPlotter, Plotter
+from pyharmonics.plotter import OptionPlotter
 import pandas as pd
 import datetime
 

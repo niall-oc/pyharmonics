@@ -1,12 +1,12 @@
-Using the Technicals object on OHLC Data
+Using the OHLCTechnicals object on OHLC Data
 ----------------------------------------
 .. code-block:: python
     :linenos:
 
     >>> from pyharmonics.marketdata import BinanceCandleData
-    >>> from pyharmonics.technicals import Technicals
+    >>> from pyharmonics.technicals import OHLCTechnicals
     >>> b = BinanceCandleData()
-    >>> t = Technicals(b.df, b.symbol, b.interval, peak_spacing=20)
+    >>> t = OHLCTechnicals(b.df, b.symbol, b.interval, peak_spacing=20)
     Traceback (most recent call last):
     File "<stdin>", line 1, in <module>
     File "/home/xual/Software/pyharmonics/src/pyharmonics/technicals.py", line 129, in __init__
@@ -65,6 +65,33 @@ As you can see the Techicals object adds more technical data to the dataframe.  
 .. note::
 
     More peaks will mean more points to search through when looking for harmonic patterns.  In some cases this can lead to too many patterns being identified.
+
+
+Using the standard Technicals object on single trend data
+----------------------------------------
+.. code-block:: python
+    :linenos:
+
+    >>> from pyharmonics.technicals import Technicals
+    >>> from pyharmonics.utils import UER
+    >>> t = Technicals(UER, 'Unemployment', 'monthly', peak_spacing=6)
+    >>> t.df
+            year  close  price_peaks  price_dips      macd        rsi  stoch_rsi  ...    ema 21    ema 34    ema 55  macd_peaks  macd_dips  rsi_peaks  rsi_dips
+    0    2013-01-01    8.0            1           0       NaN        NaN        NaN  ...       NaN       NaN       NaN           0          0          0         0
+    1    2013-02-01    7.7            0           0       NaN        NaN        NaN  ...       NaN       NaN       NaN           0          0          0         0
+    2    2013-03-01    7.5            0           0       NaN        NaN        NaN  ...       NaN       NaN       NaN           0          0          0         0
+    3    2013-04-01    7.6            0           0       NaN        NaN        NaN  ...       NaN       NaN       NaN           0          0          0         0
+    4    2013-05-01    7.5            0           0       NaN        NaN        NaN  ...       NaN       NaN       NaN           0          0          0         0
+    ..          ...    ...          ...         ...       ...        ...        ...  ...       ...       ...       ...         ...        ...        ...       ...
+    122  2023-03-01    3.5            0           0  0.036866  38.289828   0.591382  ...  4.069905  4.441627  4.740887           0          0          0         0
+    123  2023-04-01    3.4            0           1  0.042426  37.160633   0.686581  ...  4.009005  4.382106  4.692998           0          0          0         0
+    124  2023-05-01    3.7            1           0  0.068006  42.627002   0.736196  ...  3.980914  4.343128  4.657534           0          0          1         0
+    125  2023-06-01    3.6            0           0  0.079110  41.336196   0.769141  ...  3.946285  4.300664  4.619765           0          0          0         0
+    126  2023-07-01    3.5            0           0  0.080380  40.030762   0.794174  ...  3.905714  4.254912  4.579774           1          0          0         0
+
+    [127 rows x 22 columns]
+    
+
 
 Technicals.df schema
 ~~~~~~~~~~~~~~~~~~~~
