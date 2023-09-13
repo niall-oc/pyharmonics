@@ -1,8 +1,52 @@
+__author__ = 'github.com/niall-oc'
+
 from pyharmonics.marketdata.candle_base import CandleData
 import yfinance as yf
 import pandas as pd
-import math
 
+class YahooOptionChain:
+    def __init__(self, option_chain, top=30, trend='openInterest'):
+        """
+        :param yfinance.Ticker ticker: the yfinance Ticker object representing an asset.
+        :params int top: the top 30 options, ranked by openInterest, are analyzed by default.
+        """
+        self.trend = trend
+        self.calls = option_chain.calls
+        self.calls = self.calls.sort_values(by=[trend], ascending=False)[:top]
+        self.calls = self.calls.sort_values(by=['strike'])
+        self.calls['oi_cumsum'] = self.calls[trend].cumsum()
+        limit = min(self.calls['strike'])
+        self.calls['losses'] = self.calls.apply(lambda row: (row['strike'] - limit) * row['oi_cumsum'] * 100, axis=1)
+
+        self.puts = option_chain.puts
+        self.puts = self.puts.sort_values(by=[trend], ascending=False)[:top]
+        self.puts = self.puts.sort_values(by=['strike'])
+        self.puts['oi_cumsum'] = self.puts.loc[::-1, trend].cumsum()[::-1]
+        limit = max(self.puts['strike'])
+        self.puts['losses'] = self.puts.apply(lambda row: (limit - row['strike']) * row['oi_cumsum'] * 100, axis=1)
+
+        self.losses = self.calls[['strike', 'losses']].merge(self.puts[['strike', 'losses']], on='strike', how='outer').sort_values(by='strike')
+        self.losses['losses_x'] = self.losses['losses_x'].ffill().fillna(0.0)
+        self.losses['losses_y'] = self.losses['losses_y'].bfill().fillna(0.0)
+        self.losses['pain'] = self.losses['losses_x'] + self.losses['losses_y']
+        self.losses['pain'] = self.losses['pain'].map(lambda x: x or None).ffill().bfill()
+        self.min_pain = list(self.losses.loc[self.losses['pain'] == min(self.losses['pain'])].to_dict()['strike'].values())[0]
+
+
+class YahooOptionsData:
+    def __init__(self, symbol):
+        self.symbol = symbol
+        self.ticker = yf.Ticker(self.symbol)
+        self.options = {}
+        self.price = float(self.ticker.info['currentPrice'])
+
+    def analyse_options(self, top=30, trend='openInterest'):
+        """
+        :params int top: the top 30 options, ranked by openInterest, are analyzed by default.
+        df = df.merge(right=fun.options[fun.ticker.options[4]].calls[['strike', 'openInterest']], on='strike', how='left', suffixes=['4', f'_{fun.ticker.options[4]}'])
+        """
+        for expiry in self.ticker.options:
+            self.options[expiry] = YahooOptionChain(self.ticker.option_chain(expiry), top=top, trend=trend)
 
 class YahooCandleData(CandleData):
     """

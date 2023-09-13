@@ -1,14 +1,14 @@
 __author__ = 'github.com/niall-oc'
 
 from pyharmonics.marketdata import BinanceCandleData
-from pyharmonics.technicals import Technicals
+from pyharmonics.technicals import OHLCTechnicals, Technicals
 import pandas as pd
 import numpy as np
 
 b = BinanceCandleData()
 b._set_params('BTCUSDT', b.HOUR_1, 1000, None, None)
 b.df = pd.read_pickle('tests/data/btc_test_data')
-t = Technicals(b.df, b.symbol, b.interval, peak_spacing=20)
+t = OHLCTechnicals(b.df, b.symbol, b.interval, peak_spacing=20)
 
 def test_price_dips():
     given = t.get_peak_x_y(t.PRICE_DIPS)
@@ -70,6 +70,12 @@ def test_rsi_peaks():
                   90.41181403153934, 71.63007067733558, 57.871009640915])
     )
     assert np.all(np.equal(given, expected))
+
+def test_single_trend_technicals():
+    of = pd.DataFrame(b.df[['close']])
+    st = Technicals(of, 'BTCUSDT', b.HOUR_1)
+    assert len(of) > 0
+    assert Technicals.PRICE_PEAKS in list(t.df.columns)
 
 if __name__ == '__main__':
     # For debugging

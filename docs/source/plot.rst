@@ -1,15 +1,18 @@
 Plotting
 --------
 
+You can plot any technicals object ( OHLCTechnicals or Technicals) using a basic Plotter or position Plotter.
+
+Plotting is not a function added to technicals because it should not be part of that object.  The plotters provided are basic but sufficent for testing and feedback.
+
 Plot the findings.
 ~~~~~~~~~~~~~~~~~~
 .. code-block:: python
-    :linenos:
        
-    >>> from pyharmonics.plotter import Plotter
-    >>> p = Plotter(t, 'BTCUSDT', b.HOUR_1)
-    >>> p.add_matrix_plots(m.get_patterns(family=m.XABCD))
-    >>> p.show()
+  >>> from pyharmonics.plotter import Plotter
+  >>> p = Plotter(t, 'BTCUSDT', b.HOUR_1)
+  >>> p.add_matrix_plots(m.get_patterns(family=m.XABCD))
+  >>> p.show()
 
 You will see something like this.
 
@@ -19,11 +22,10 @@ You will see something like this.
 See all harmonic patterns.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. code-block:: python
-    :linenos:
        
-    >>> p = Plotter(t, 'BTCUSDT', b.HOUR_1)
-    >>> p.add_matrix_plots(m.get_patterns())
-    >>> p.show()
+  >>> p = Plotter(t, 'BTCUSDT', b.HOUR_1)
+  >>> p.add_matrix_plots(m.get_patterns())
+  >>> p.show()
 
 You will see something like this.
 
@@ -33,33 +35,31 @@ You will see something like this.
 See all forming patterns.
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. code-block:: python
-    :linenos:
        
-    >>> m = MatrixSearch(t)
-    >>> m.forming()
-    >>> p = Plotter(t, 'BTCUSDT', b.HOUR_1)
-    >>> p.add_matrix_plots(m.get_patterns(formed=False))
-    >>> p.show()
+  >>> m = MatrixSearch(t)
+  >>> m.forming()
+  >>> p = Plotter(t, 'BTCUSDT', b.HOUR_1)
+  >>> p.add_matrix_plots(m.get_patterns(formed=False))
+  >>> p.show()
 
 
 Position add_matrix_plots
 -------------------------
 .. code-block:: python
-    :linenos:
 
-    >>> m = MatrixSearch(t)
-    >>> m.search()
-    >>> patterns = m.get_patterns(family=m.XABCD)
-    >>> pattern = patterns[m.XABCD][0]
-    >>> # After extracting a pattern in isolation a position can be created.
-    >>> # Position(pattern, symbol, interval, strike_price, dollar_amount)
-    >>> position = Position(pattern, 'BTSUSDT', b.HOUR_1, pattern.y[-1], 1000)
-    >>> p = PositionPlotter(t, position)
-    >>> p.show()
+  >>> m = MatrixSearch(t)
+  >>> m.search()
+  >>> patterns = m.get_patterns(family=m.XABCD)
+  >>> pattern = patterns[m.XABCD][0]
+  >>> # After extracting a pattern in isolation a position can be created.
+  >>> # Position(pattern, symbol, interval, strike_price, dollar_amount)
+  >>> position = Position(pattern, 'BTSUSDT', b.HOUR_1, pattern.y[-1], 1000)
+  >>> p = PositionPlotter(t, position)
+  >>> p.show()
 
 The most useful plot feature is the position plot.
 
-.. image:: ../images/all_ppositionplot.png
+.. image:: ../images/positionplot.png
   :alt: A tradable position.
 
 
@@ -84,3 +84,31 @@ The position is divided into 3 parts Pos1 Pos2 Pos3.
 
 The %Move column in the plot beside the price column indicates the size of the move.  You don't get 18% profits with that move because you sold out along the way as a risk management strategy.
 
+
+Call/Put Option Plots
+---------------------
+
+.. code-block:: python3
+
+  >>> from pyharmonics.marketdata import YahooOptionsData
+  >>> from pyharmonics.plotter import OptionPlotter
+
+  >>> yo = YahooOptionsData('NVDA')
+  >>> yo.analyse_options(trend='volume')
+  >>> p = OptionPlotter(yo, yo.ticker.options[0])
+  >>> p.show()
+
+  >>> yo.analyse_options(trend='openInterest')
+  >>> p = OptionPlotter(yo, yo.ticker.options[0])
+  >>> p.show()
+
+The trend or measure for your options activity can be ``volume`` or ``openInterest``.  The OptionPlotter takes a YahooOptionsData object and an expiry date for any plot.
+
+Although the expiry dates are present in the YahooOptionsData object you must specifically select one to view.
+
+.. image:: ../images/optionplot.png
+  :alt: Options by volume
+
+.. note::
+
+    ``volume`` or ``openInterest`` data resets daily. No activity for a trading can present false points of mimimum pain. Option plots are most complete by end of trading day (usually 16:30 EST)

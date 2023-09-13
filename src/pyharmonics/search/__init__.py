@@ -1,5 +1,3 @@
-from .matrix import MatrixSearch
+from .matrix import HarmonicSearch
 
-__all__ = (
-    MatrixSearch
-)
+__all__ = HarmonicSearch

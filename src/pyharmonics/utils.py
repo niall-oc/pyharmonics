@@ -2,6 +2,38 @@ __author__ = 'github.com/niall-oc'
 
 from pyharmonics import constants
 from copy import deepcopy
+import numpy as np
+import pandas as pd
+import sys
+from io import StringIO
+
+
+UER = pd.read_csv(
+    StringIO(
+        'year,close\n2013-01-01,8.0\n2013-02-01,7.7\n2013-03-01,7.5\n2013-04-01,7.6\n2013-05-01,7.5\n'
+        '2013-06-01,7.5\n2013-07-01,7.3\n2013-08-01,7.2\n2013-09-01,7.2\n2013-10-01,7.2\n2013-11-01,6.9\n'
+        '2013-12-01,6.7\n2014-01-01,6.6\n2014-02-01,6.7\n2014-03-01,6.7\n2014-04-01,6.2\n2014-05-01,6.3\n'
+        '2014-06-01,6.1\n2014-07-01,6.2\n2014-08-01,6.1\n2014-09-01,5.9\n2014-10-01,5.7\n2014-11-01,5.8\n'
+        '2014-12-01,5.6\n2015-01-01,5.7\n2015-02-01,5.5\n2015-03-01,5.4\n2015-04-01,5.4\n2015-05-01,5.6\n'
+        '2015-06-01,5.3\n2015-07-01,5.2\n2015-08-01,5.1\n2015-09-01,5.0\n2015-10-01,5.0\n2015-11-01,5.1\n'
+        '2015-12-01,5.0\n2016-01-01,4.8\n2016-02-01,4.9\n2016-03-01,5.0\n2016-04-01,5.1\n2016-05-01,4.8\n'
+        '2016-06-01,4.9\n2016-07-01,4.8\n2016-08-01,4.9\n2016-09-01,5.0\n2016-10-01,4.9\n2016-11-01,4.7\n'
+        '2016-12-01,4.7\n2017-01-01,4.7\n2017-02-01,4.6\n2017-03-01,4.4\n2017-04-01,4.4\n2017-05-01,4.4\n'
+        '2017-06-01,4.3\n2017-07-01,4.3\n2017-08-01,4.4\n2017-09-01,4.3\n2017-10-01,4.2\n2017-11-01,4.2\n'
+        '2017-12-01,4.1\n2018-01-01,4.0\n2018-02-01,4.1\n2018-03-01,4.0\n2018-04-01,4.0\n2018-05-01,3.8\n'
+        '2018-06-01,4.0\n2018-07-01,3.8\n2018-08-01,3.8\n2018-09-01,3.7\n2018-10-01,3.8\n2018-11-01,3.8\n'
+        '2018-12-01,3.9\n2019-01-01,4.0\n2019-02-01,3.8\n2019-03-01,3.8\n2019-04-01,3.6\n2019-05-01,3.7\n'
+        '2019-06-01,3.6\n2019-07-01,3.7\n2019-08-01,3.7\n2019-09-01,3.5\n2019-10-01,3.6\n2019-11-01,3.6\n'
+        '2019-12-01,3.6\n2020-01-01,3.5\n2020-02-01,3.5\n2020-03-01,4.4\n2020-04-01,14.7\n2020-05-01,13.2\n'
+        '2020-06-01,11.0\n2020-07-01,10.2\n2020-08-01,8.4\n2020-09-01,7.9\n2020-10-01,6.9\n2020-11-01,6.7\n'
+        '2020-12-01,6.7\n2021-01-01,6.3\n2021-02-01,6.2\n2021-03-01,6.1\n2021-04-01,6.1\n2021-05-01,5.8\n'
+        '2021-06-01,5.9\n2021-07-01,5.4\n2021-08-01,5.2\n2021-09-01,4.8\n2021-10-01,4.5\n2021-11-01,4.2\n'
+        '2021-12-01,3.9\n2022-01-01,4.0\n2022-02-01,3.8\n2022-03-01,3.6\n2022-04-01,3.6\n2022-05-01,3.6\n'
+        '2022-06-01,3.6\n2022-07-01,3.5\n2022-08-01,3.7\n2022-09-01,3.5\n2022-10-01,3.7\n2022-11-01,3.6\n'
+        '2022-12-01,3.5\n2023-01-01,3.4\n2023-02-01,3.6\n2023-03-01,3.5\n2023-04-01,3.4\n2023-05-01,3.7\n'
+        '2023-06-01,3.6\n2023-07-01,3.5\n'
+    )
+)
 
 
 def get_pattern_retraces(prices: list) -> dict:
@@ -205,3 +237,63 @@ def line_slope(y2: float, y1: float, x2: int, x1: int) -> float:
         return y_diff / (x2 - x1)
     else:
         return 0
+
+def find_peaks(data, comparator, axis=0, order=1, mode='clip'):
+    """
+    Calculate the relative extrema of `data`.
+    Relative extrema are calculated by finding locations where
+    ``comparator(data[n], data[n+1:n+order+1])`` is True.
+    Parameters
+    ----------
+    data : ndarray
+        Array in which to find the relative extrema.
+    comparator : callable
+        Function to use to compare two data points.
+        Should take two arrays as arguments.
+    axis : int, optional
+        Axis over which to select from `data`. Default is 0.
+    order : int, optional
+        How many points on each side to use for the comparison
+        to consider ``comparator(n,n+x)`` to be True.
+    mode : str, optional
+        How the edges of the vector are treated. 'wrap' (wrap around) or
+        'clip' (treat overflow as the same as the last (or first) element).
+        Default 'clip'. See numpy.take.
+    Returns
+    -------
+    extrema : ndarray
+        Boolean array of the same shape as `data` that is True at an extrema,
+        False otherwise.
+    See also
+    --------
+    argrelmax, argrelmin
+    Examples
+    --------
+    >>> import numpy as np
+    >>> testdata = np.array([1,2,3,2,1])
+    >>> self.find_peaks(testdata, np.greater, axis=0)
+    array([False, False,  True, False, False], dtype=bool)
+    """
+    if (int(order) != order) or (order < 1):
+        raise ValueError('Order must be an int >= 1')
+
+    datalen = data.shape[axis]
+    locs = np.arange(0, datalen)
+
+    results = np.ones(data.shape, dtype=bool)
+    main = data.take(locs, axis=axis, mode=mode)
+    for shift in range(1, order + 1):
+        plus = data.take(locs + shift, axis=axis, mode=mode)
+        minus = data.take(locs - shift, axis=axis, mode=mode)
+        results &= comparator(main, plus)
+        results &= comparator(main, minus)
+        if ~results.any():
+            break
+    # Calculate plateaus
+    plateaus = (data == np.roll(data, 1))
+    for i in range(len(plateaus)):
+        # Just passed a plateau
+        if plateaus[i]:
+            # Remove the first registered peak in a plateau leaving the latter only as a peak
+            results[i - 1] = False
+    return results

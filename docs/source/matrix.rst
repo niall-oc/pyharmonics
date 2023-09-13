@@ -18,7 +18,7 @@ where
 1000 candles with n = 100 peaks consitiutes a 100^2/2 ( lower triangle ) scan followed by an additional (n-m)^2/2 loops to link patterns. That's 5000 + 1250 passes to locate **all** patterns in the dataframe. That is 1445520 times faster than brute force.
 
 .. note::
-    It implies if you could scan one Asset in 30 seconds btute force you can now scan 1.446 Millions assets in the same 30 seconds.  The internet is now the slowest part of this problem.
+    It implies that instead of scanning one Asset in 30 seconds using a brute force approach you can now scan 1.446 Millions assets in the same 30 seconds.  The internet is now the slowest part of this problem.
 
 
 

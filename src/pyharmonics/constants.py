@@ -27,6 +27,7 @@ CLOSE = 'close'
 VOLUME = 'volume'
 INDEX = 'index'
 COLUMNS = [OPEN, HIGH, LOW, CLOSE, VOLUME, CLOSE_TIME, DTS]
+TREND = 'trend'
 
 MIN_1 = "1m"
 MIN_3 = "3m"
