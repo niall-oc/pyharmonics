@@ -1,4 +1,4 @@
-from pyharmonics.marketdata import YahooCandleData
+from pyharmonics.marketdata import YahooCandleData, YahooOptionData
 import pandas as pd
 import datetime
 
@@ -17,6 +17,14 @@ def test_YahooCandleData():
     assert (len(y.df.columns) == len(y.COLUMNS))  # type:ignore
     t = datetime.datetime(2020, 1, 1, 1, 1, 1)
     assert (y._datetime_to_epoch(t) == 1577840461)
+
+def test_YahooOptionData():
+    """
+    Analyse options for stock
+    """
+    yo = YahooOptionData('TSLA')
+    yo.analyse_options()
+    assert isinstance(yo.ticker.options[0], str)
 
 def test_get_candles():
     """

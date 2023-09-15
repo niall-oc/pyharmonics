@@ -33,7 +33,7 @@ class YahooOptionChain:
         self.min_pain = list(self.losses.loc[self.losses['pain'] == min(self.losses['pain'])].to_dict()['strike'].values())[0]
 
 
-class YahooOptionsData:
+class YahooOptionData:
     def __init__(self, symbol):
         self.symbol = symbol
         self.ticker = yf.Ticker(self.symbol)
