@@ -1,6 +1,6 @@
 # pyharmonics
 
-pyharmonics detects harmonic patterns in OHLC candle data for any stock or crypto asset.  See http://www.harmonictrader.com for more information.
+pyharmonics detects harmonic patterns in OHLC candle data for any stock or crypto asset.  See http://www.harmonictrader.com for more information on harmonic patterns and follow author Scott Carney.
 
 ## Installation
 

@@ -90,10 +90,10 @@ Call/Put Option Plots
 
 .. code-block:: python3
 
-  >>> from pyharmonics.marketdata import YahooOptionsData
+  >>> from pyharmonics.marketdata import YahooOptionData
   >>> from pyharmonics.plotter import OptionPlotter
 
-  >>> yo = YahooOptionsData('NVDA')
+  >>> yo = YahooOptionData('NVDA')
   >>> yo.analyse_options(trend='volume')
   >>> p = OptionPlotter(yo, yo.ticker.options[0])
   >>> p.show()

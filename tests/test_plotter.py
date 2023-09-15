@@ -1,4 +1,4 @@
-from pyharmonics.marketdata import BinanceCandleData, YahooOptionsData
+from pyharmonics.marketdata import BinanceCandleData, YahooOptionData
 from pyharmonics.search import HarmonicSearch
 from pyharmonics import OHLCTechnicals, Position, Technicals
 from pyharmonics.plotter import HarmonicPlotter, PositionPlotter, Plotter, OptionPlotter
@@ -38,7 +38,7 @@ def test_position_plotter():
     p.show()
 
 def test_option_plotter():
-    yo = YahooOptionsData('TSLA')
+    yo = YahooOptionData('TSLA')
     yo.analyse_options(trend='volume')
     p = OptionPlotter(yo, yo.ticker.options[0])
     p.show()
