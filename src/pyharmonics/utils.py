@@ -4,9 +4,7 @@ from pyharmonics import constants
 from copy import deepcopy
 import numpy as np
 import pandas as pd
-import sys
 from io import StringIO
-
 
 UER = pd.read_csv(
     StringIO(
