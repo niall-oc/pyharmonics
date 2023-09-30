@@ -45,7 +45,7 @@ class HarmonicSearch:
 
     def _build_fib_matrix(self):
         """
-        Consider any point as a thw start of a leg.
+        Consider any point as a the start of a leg.
         Calculate all retraces off any peak.
         If a new peak is encountered ater the current peak it becomes the new -1 peak.
         Retrace peaks are greter than 0.0.
@@ -192,6 +192,13 @@ class HarmonicSearch:
 
     def search(self, limit_to=-1):
         """
+        >>> h = HarmonicSearch(t)
+
+        Search all peaks for patterns
+        >>> h.search()
+
+        Search for patterns that complete within the most recent peaks
+        >>> h.search(limit_to=3)
         """
         self._formed = {constants.XABCD: [], constants.ABCD: [], constants.ABC: []}
         if limit_to > -1:
@@ -202,11 +209,11 @@ class HarmonicSearch:
             # Gather all valid cells ( upper right triangle of matrix)
             # Search for BCD patterns that also complete on this candle.
             # this gives both the X to d, and the bcd within that x to d
-            self._formed[self.XABCD] += self.find_xabcd(D_idx)
-            self._formed[self.ABCD] += self.find_abcd(D_idx)
-            self._formed[self.ABC] += self.find_abc(D_idx)
+            self._formed[self.XABCD] += self._find_xabcd(D_idx)
+            self._formed[self.ABCD] += self._find_abcd(D_idx)
+            self._formed[self.ABC] += self._find_abc(D_idx)
 
-    def find_abc(self, C_idx):
+    def _find_abc(self, C_idx):
         """
         From this candles perspective. What ABC retraces occur here.
         """
@@ -221,7 +228,7 @@ class HarmonicSearch:
                 )
         return found
 
-    def find_abcd(self, D_idx):
+    def _find_abcd(self, D_idx):
         """
         Given the set of BCD retraces that complete at this candle, is the following possible
         1. Using the C point of each retrace, is there an ABC retrace that fits
@@ -249,7 +256,7 @@ class HarmonicSearch:
                         found.append(self._create_abcd_pattern(A_idx, B_idx, C_idx, D_idx, p))
         return found
 
-    def find_xabcd(self, D_idx):
+    def _find_xabcd(self, D_idx):
         """
         Given the set of BCD retraces that complete at this candle, is the following possible
         1. Scan the same candle for X, A or C, D retraces that are consistent with harmonic patterns.
@@ -302,7 +309,7 @@ class HarmonicSearch:
                                     found.append(self._create_xabcd_pattern(X_idx, A_idx, B_idx, C_idx, D_idx, p))
         return found
 
-    def forming(self, limit_to=-1, percent_complete=0.8):
+    def forming(self, limit_to=-1, percent_c_to_d=0.8):
         """
         """
         self._forming = {constants.XABCD: [], constants.ABCD: [], constants.ABC: []}
@@ -324,7 +331,7 @@ class HarmonicSearch:
                     abcd_patterns = abc_patterns & constants.ABCDS
                     if abcd_patterns and b_idx == B_idx:  # Is it a pattern and is it sharing the B point
                         for ap in abcd_patterns:
-                            if self.fib_matrix[B_idx][D_idx] >= self.PATTERNS[constants.ABCD][ap][constants.MIN] * percent_complete and \
+                            if self.fib_matrix[B_idx][D_idx] >= self.PATTERNS[constants.ABCD][ap][constants.MIN] * percent_c_to_d and \
                                self.fib_matrix[B_idx][D_idx] <= self.PATTERNS[constants.ABCD][ap][constants.MIN]:
                                 self._forming[constants.ABCD].append(self._create_abcd_pattern(A_idx, B_idx, C_idx, D_idx, ap, formed=False))
 
@@ -336,7 +343,7 @@ class HarmonicSearch:
                             xabcd_patterns = xab_patterns & abc_patterns & constants.XABCDS
                             for xp in xabcd_patterns:
                                 # the pattern cannot have over shot the min completion zone
-                                if self.fib_matrix[X_idx][D_idx] >= self.PATTERNS[constants.XABCD][xp][constants.MIN] * percent_complete and\
+                                if self.fib_matrix[X_idx][D_idx] >= self.PATTERNS[constants.XABCD][xp][constants.MIN] * percent_c_to_d and\
                                    self.fib_matrix[X_idx][D_idx] <= self.PATTERNS[constants.XABCD][xp][constants.MIN]:
                                     self._forming[constants.XABCD].append(self._create_xabcd_pattern(X_idx, A_idx, B_idx, C_idx, D_idx, xp, formed=False))
 

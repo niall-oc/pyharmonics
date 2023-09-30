@@ -18,7 +18,7 @@ class PlotterBase(abc.ABC):
         self.technicals = technicals
         self.title = title or 'chart'
         self.time_horizon = time_horizon
-        self.df = technicals.as_df()
+        self.df = technicals.df
         self.date_series = self.df.index
         self.plot_ema = plot_ema
         self.plot_sma = plot_sma
@@ -199,7 +199,7 @@ class PlotterBase(abc.ABC):
     def _add_abc_pattern(self, p, prices):
         """
         """
-        text = ['', '', f"{'long' if p.bullish else 'short'}"]
+        text = ['', '', f"{'long' if p.bullish else 'short'} {p.name}"]
         line = dict(color=self.colors[p.bullish][p.formed]['line'], width=2, dash='dash')
         self.main_plot.add_trace(
             go.Scatter(

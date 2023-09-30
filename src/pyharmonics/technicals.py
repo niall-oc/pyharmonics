@@ -75,8 +75,6 @@ class TechnicalsBase(abc.ABC):
         ----------
         df: pandas.DataFrame
             Must contain ['open', 'high', 'close', 'low', 'volume']
-        symbol: str
-        interval: str
         indicator_config : dict
             kw arguments for techincal indicators, stoch_rsi, rsi, mfi, cci and macd implemented
             defaults are  {
@@ -86,9 +84,28 @@ class TechnicalsBase(abc.ABC):
                 Technicals.CCI: {'window': 20, 'constant': 0.015},
                 Technicals.MFI: {'window': 20}
             }
+        sma_config: dict
+            kw arguments for simple moving averages.
+            defaults are {
+                self.SMA_50: {'window': 50},
+                self.SMA_100: {'window': 100},
+                self.SMA_150: {'window': 150},
+                self.SMA_200: {'window': 200}
+            }
+        ema_config: dict
+            kw arguments for exponential moving averages.
+            defaults are {
+                self.EMA_5: {'window': 5},
+                self.EMA_8: {'window': 8},
+                self.EMA_13: {'window': 13},
+                self.EMA_21: {'window': 21},
+                self.EMA_34: {'window': 34},
+                self.EMA_55: {'window': 55}
+            }
         peak_spacing: int
             higher number means less sensitivity to peaks.
-        Returns
+
+        returns
         -------
         None
         """
@@ -112,7 +129,7 @@ class TechnicalsBase(abc.ABC):
             self.EMA_34: {'window': 34},
             self.EMA_55: {'window': 55}
         }
-        self.df = df
+        self.df = df.copy()
         self.peak_spacing = peak_spacing
         self.interval_map = {
             constants.WEEK_1: math.ceil(math.log(1) * 10),
@@ -132,14 +149,23 @@ class TechnicalsBase(abc.ABC):
         elif not len(self.df):
             raise IndexError("Candle DataFrame is empty")
 
-    def set_peak_data(self):
+    def _set_peak_data(self):
         """
         Sets peak spacing for this objects and finds peak data on indicators and prices.
         Builds Fibonacci matrix based on price peak data.
         """
         self._set_indicators()
         self._set_moving_avergaes()
-        self.df = self.as_df()
+
+        for indicator, trend in self.indicators.items():
+            self.df[indicator] = trend
+
+        for key in self.SMA_CONFIG:
+            self.df[key] = self.smas[key].sma_indicator()
+
+        for key in self.EMA_CONFIG:
+            self.df[key] = self.emas[key].ema_indicator()
+
         self._build_peaks()
         # self._build_peak_slopes()
         self.spot = self.df[constants.CLOSE].iloc[-1]
@@ -193,23 +219,6 @@ class TechnicalsBase(abc.ABC):
             }
         }
 
-    def as_df(self):
-        if self.indicators:
-            df = self.df.copy()
-            for indicator, trend in self.indicators.items():
-                df[indicator] = trend
-
-            for key in self.SMA_CONFIG:
-                df[key] = self.smas[key].sma_indicator()
-
-            for key in self.EMA_CONFIG:
-                df[key] = self.emas[key].ema_indicator()
-
-            return df
-
-        else:
-            return self.df.copy()
-
     def _set_moving_avergaes(self):
         self.smas = {}
         for ma, config in self.SMA_CONFIG.items():
@@ -226,14 +235,6 @@ class TechnicalsBase(abc.ABC):
             self.BBP: BollingerBands(close=self.df[constants.CLOSE], **self.INDICATOR_CONFIG[self.BBP]).bollinger_pband()
         }
 
-    @staticmethod
-    def reverse_fill_na(array, limit_index=1):
-        for i in range(len(array) - 1, 0, -1):
-            if i < limit_index:
-                break
-            if array[i - 1] is None:
-                array[i - 1] = array[i]
-
     @abc.abstractmethod
     def get_peak_x_y(self):
         pass
@@ -241,6 +242,12 @@ class TechnicalsBase(abc.ABC):
     def get_index_x(self, x):
         """
         Resolve the index of a pattern into an actual dataframe index ( epoch or date time stam ( dts ))
+
+        >>> t = OHLCTechnicals(df, symbol, time_frame)
+        >>> t.get_index_x([1, 2, 3])
+        [Timestamp('2023-04-17 08:59:59+0100', tz='Europe/Dublin'),
+         Timestamp('2023-04-17 12:59:59+0100', tz='Europe/Dublin'),
+         Timestamp('2023-04-17 16:59:59+0100', tz='Europe/Dublin')]
         """
         return list(self.df.index[x])
 
@@ -254,6 +261,8 @@ class TechnicalsBase(abc.ABC):
         pattern_indexes: list
             The indexes within technical_data.peak_indexes and technical_data.peak_prices that form the pattern.
 
+        >>> t.get_pattern_x_y([1, 2, 3])
+        ([29, 42, 46], [27125.0, 28000.0, 26942.82])
         """
         x = [self.peak_indexes[i] for i in peak_indexes]
         y = [self.peak_prices[i] for i in peak_indexes]
@@ -269,13 +278,20 @@ class TechnicalsBase(abc.ABC):
         pattern_indexes: list
             The indexes within technical_data.peak_indexes and technical_data.peak_prices that form the pattern.
 
+        >>> t.get_series_x_y([100, 200, 300], t.MACD)
+        ([100, 200, 300], [5.503533503855266, -11.21857793005239, -160.57022744782142])
         """
         y = list(self.df[series].values[series_indexes])
         return series_indexes, y
 
     def filter_peak_data(self, lows=False):
         """
-        Extract either teh highs or the lows from peaks.
+        Extract either the highs or the lows from peaks.
+
+        >>> t.filter_peak_data()
+        [(9, 30485.0, 1), (42, 28000.0, 1), (57, 30036.0, 1), (81, 29969.39, 1), ...]
+        >>> t.filter_peak_data(lows=True)
+        [(29, 27125.0, 0), (46, 26942.82, 0), (89, 27666.95, 0), (131, 27262.0, 0), ...]
         """
         if lows:
             # return lows - PEAK_TYPE = 0
@@ -344,7 +360,7 @@ class OHLCTechnicals(TechnicalsBase):
         self.interval = interval
         self.df[self.PRICE_PEAKS] = np.int64(utils.find_peaks(self.df[constants.HIGH].values, np.greater_equal, order=self.peak_spacing))
         self.df[self.PRICE_DIPS] = np.int64(utils.find_peaks(self.df[constants.LOW].values, np.less_equal, order=self.peak_spacing))
-        self.set_peak_data()
+        self._set_peak_data()
 
     def get_peak_x_y(self, peak_type):
         """
@@ -377,7 +393,7 @@ class Technicals(TechnicalsBase):
         self.interval = interval
         self.df[self.PRICE_PEAKS] = np.int64(utils.find_peaks(self.df[constants.CLOSE].values, np.greater_equal, order=self.peak_spacing))
         self.df[self.PRICE_DIPS] = np.int64(utils.find_peaks(self.df[constants.CLOSE].values, np.less_equal, order=self.peak_spacing))
-        self.set_peak_data()
+        self._set_peak_data()
 
     def get_peak_x_y(self, peak_type):
         """

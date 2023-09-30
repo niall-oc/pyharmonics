@@ -17,7 +17,7 @@ m.search()
 def test_ohlc_technicals_plotter():
     p = HarmonicPlotter(t)
     p.add_peaks()
-    p.add_harmonic_plots(m.get_patterns(family=m.XABCD))
+    p.add_harmonic_plots(m.get_patterns(family=m.ABC))
     p.show()
 
 def test_single_technicals_plotter():
