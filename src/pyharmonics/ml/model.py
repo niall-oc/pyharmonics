@@ -11,15 +11,16 @@ from keras.layers import Dense, Activation, Dropout, LSTM
 from copy import deepcopy
 
 
-def new_dataset(dataset, step_size):
+def new_dataset(dataset, step_size, predict_size):
     data_X, data_Y = [], []
-    for i in range(step_size, len(dataset)):
-        data_X.append(dataset[i - step_size:i, 0])
-        data_Y.append(dataset[i, 0])
+    for begin in range(len(dataset) - step_size - predict_size - 1):
+        end = begin + step_size
+        data_X.append(dataset[begin:end])
+        data_Y.append(dataset[end:end + predict_size])
     return np.array(data_X), np.array(data_Y)
 
 
-def get_step_sizes(data, step_size=60):
+def get_step_sizes(data, step_size=60, predict_size=2):
     """
     >>> ll = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     >>> new_dataset(ll)
