@@ -5,7 +5,7 @@ from plotly.subplots import make_subplots
 import numpy as np
 import math
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import mean_squared_error
+from keras.metrics import mean_squared_error, mean_absolute_percentage_error
 from keras.models import Sequential, load_model
 from keras.layers import Dense, Activation, Dropout, LSTM
 from copy import deepcopy

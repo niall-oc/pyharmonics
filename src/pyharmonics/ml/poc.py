@@ -1,12 +1,9 @@
 # IMPORTING IMPORTANT LIBRARIES
 from pyharmonics.marketdata import BinanceCandleData
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import numpy as np
 import math
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import mean_squared_error
-from keras.models import Sequential
+from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error
+from keras.models import Sequential, load_model
 from keras.layers import Dense, Activation, LSTM, RepeatVector, TimeDistributed
 
 
@@ -42,6 +39,7 @@ train_OHLC, test_OHLC = OHLCV[0:train_OHLC, :], OHLCV[train_OHLC:len(OHLCV), :]
 num_steps = 30
 num_features = len(columns)
 num_predicts = 2
+num_neurons = num_features + num_predicts
 trainX, trainY = new_dataset(train_OHLC, num_steps, num_predicts)
 testX, testY = new_dataset(test_OHLC, num_steps, num_predicts)
 
@@ -49,20 +47,44 @@ trainX = trainX.reshape((trainX.shape[0], trainX.shape[1], num_features))
 testX = testX.reshape((testX.shape[0], testX.shape[1], num_features))
 
 # LSTM MODEL
-model = Sequential()
-model.add(LSTM(200, activation='relu', input_shape=(num_steps, num_features)))
-model.add(RepeatVector(num_predicts))
-model.add(LSTM(200, activation='relu', return_sequences=True))
-model.add(TimeDistributed(Dense(num_features)))
-model.compile(optimizer='adam', loss='mse')
+def create_model(num_features, num_steps, num_predicts):
+    num_neurons = num_features + num_predicts
+    model = Sequential()
+    model.add(LSTM(num_neurons, activation='relu', input_shape=(num_steps, num_features)))
+    model.add(RepeatVector(num_predicts))
+    model.add(LSTM(num_neurons, activation='relu', return_sequences=True))
+    model.add(TimeDistributed(Dense(num_features)))
+    model.compile(optimizer='adam', loss='mse')
+    return model
 
-# MODEL COMPILING AND TRAINING
-model.compile(loss='mse', optimizer='adam')  # Try SGD, adam, adagrad and compare!!!
-model.fit(trainX, trainY, epochs=50, batch_size=100, verbose=2)
+try:
+    model = load_model('BTC_DAY_1.keras')
+except OSError as e:
+    model = create_model(num_features, num_steps, num_predicts)
+    model.fit(trainX, trainY, epochs=50, batch_size=100, verbose=2)
+    model.save('BTC_DAY_1.keras')
 
 # PREDICTION
 trainPredict = model.predict(trainX, use_multiprocessing=True)
 testPredict = model.predict(testX, use_multiprocessing=True)
 
-print(trainPredict[-1])
-print(testPredict[-1])
+
+# TRAINING RMSE
+trainmScore = [mean_squared_error(trainY[i], trainPredict[i], squared=False) for i in range(len(trainY))]
+print('Train RMSE: %.2f' % (trainmScore[-1]))
+
+# TEST RMSE
+testmScore = [mean_squared_error(testY[i], testPredict[i], squared=False) for i in range(len(testY))]
+print('Test RMSE: %.2f' % (testmScore[-1]))
+
+# TRAINING RMSE
+trainpScore = [mean_absolute_percentage_error(trainY[i], trainPredict[i]) for i in range(len(trainY))]
+print('Train RMAPE: %.2f' % (trainpScore[-1]))
+
+# TEST RMSE
+testpScore = [mean_absolute_percentage_error(testY[i], testPredict[i]) for i in range(len(testY))]
+print('Test RMAPE: %.2f' % (testpScore[-1]))
+
+# Next n predictions
+print("next train", trainPredict[-1])
+print("Next test", testPredict[-1])
