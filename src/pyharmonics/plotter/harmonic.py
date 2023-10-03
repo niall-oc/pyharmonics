@@ -387,7 +387,6 @@ class PlotterBase(abc.ABC):
         self.main_plot.show()
 
     def save_plot_image(self, location, dpi=600):
-        # self.add_watermark('/home/xual/Software/xual/images/cybertron.jpg')
         if self.ignore_weekend:
             self.main_plot.update_xaxes(
                 rangebreaks=[
