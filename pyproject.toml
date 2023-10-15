@@ -34,7 +34,5 @@ dependencies = [
     "binance-connector",
     "plotly",
     "kaleido",
-    "pandas",
-    "scikit-learn",
-    "tensorflow"
+    "pandas"
 ]
