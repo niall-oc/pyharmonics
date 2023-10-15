@@ -4,7 +4,7 @@ import datetime
 
 y = YahooCandleData()
 
-def test_YahooCandleData():
+def test_YahooCandleData_DAY_1():
     """
     Read a test block of 1000 MSFT 1day candles.
     Assetr the basic candle dataframe features work.
@@ -17,6 +17,16 @@ def test_YahooCandleData():
     assert (len(y.df.columns) == len(y.COLUMNS))  # type:ignore
     t = datetime.datetime(2020, 1, 1, 1, 1, 1)
     assert (y._datetime_to_epoch(t) == 1577840461)
+
+def test_YahooCandleData_WEEK_1():
+    """
+    Read a test block of 1000 MSFT 1day candles.
+    Assetr the basic candle dataframe features work.
+    """
+    y.get_candles('WBA', y.WEEK_1, num_candles=1000)
+
+    assert (len(y.df) == 1000)  # type:ignore
+    assert (len(y.df.columns) == len(y.COLUMNS))  # type:ignore
 
 def test_YahooOptionData():
     """

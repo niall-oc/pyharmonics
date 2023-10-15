@@ -71,8 +71,10 @@ class YahooCandleData(CandleData):
         CandleData.MIN_1: '1m',
         CandleData.MIN_5: '5m',
         CandleData.MIN_15: '15m',
+        CandleData.MIN_30: '15m',
         CandleData.HOUR_1: '60m',
         CandleData.DAY_1: '1d',
+        CandleData.DAY_5: '5d',
         CandleData.WEEK_1: '1wk',
         CandleData.MONTH_1: '1mo',
         CandleData.MONTH_3: '3mo'
@@ -146,7 +148,7 @@ class YahooCandleData(CandleData):
         tick = yf.Ticker(self.symbol)
         self.df = tick.history(
             period=self.LIMITS[self.interval],
-            interval=self.interval,
+            interval=self.INTERVALS[self.interval],
             start=self._epoch_to_datetime(self.start),
             end=self._epoch_to_datetime(self.end)
         )

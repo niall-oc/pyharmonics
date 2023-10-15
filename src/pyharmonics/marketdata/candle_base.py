@@ -40,6 +40,7 @@ class CandleData(abc.ABC):
     HOUR_8 = constants.HOUR_8
     DAY_1 = constants.DAY_1
     DAY_3 = constants.DAY_3
+    DAY_5 = constants.DAY_5
     WEEK_1 = constants.WEEK_1
     MONTH_1 = constants.MONTH_1
     MONTH_3 = constants.MONTH_3
