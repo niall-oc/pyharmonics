@@ -213,7 +213,7 @@ class BinanceCandleData(CandleData):
 
         data = self.rc.klines(
             self.symbol,
-            self.interval,
+            self.INTERVALS[self.interval],
             startTime=start,
             endTime=end,
             limit=limit
