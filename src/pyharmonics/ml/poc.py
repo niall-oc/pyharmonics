@@ -1,12 +1,13 @@
 # IMPORTING IMPORTANT LIBRARIES
 from pyharmonics.marketdata import BinanceCandleData
 import numpy as np
+import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error
 from sklearn.preprocessing import MinMaxScaler
-from keras.models import Sequential, load_model
-from keras.layers import Dense, Activation, LSTM, RepeatVector, TimeDistributed
+from tensorflow.keras.models import Sequential, load_model
+from tensorflow.keras.layers import Dense, Activation, LSTM, RepeatVector, TimeDistributed
 
 
 def new_dataset(dataset, step_size, predict_size):
@@ -22,11 +23,11 @@ np.random.seed(756)
 
 # IMPORTING DATASET
 b = BinanceCandleData()
-b.get_candles('BTCUSDT', b.HOUR_4, 5000)
+b.get_candles('BNBUSDT', b.HOUR_4, 5000)
 
 
 # TAKING DIFFERENT INDICATORS FOR PREDICTION
-columns = [b.OPEN, b.HIGH, b.LOW, b.CLOSE, b.VOLUME]
+columns = [b.OPEN, b.HIGH, b.LOW, b.CLOSE]
 candles = b.df[columns]
 
 scaler_range = (0, 1)
@@ -36,14 +37,14 @@ scaler = MinMaxScaler(feature_range=scaler_range)
 OHLCV = np.reshape(candles.values, (len(candles), len(columns)))
 
 # TRAIN-TEST SPLIT
-train_OHLC = int(len(OHLCV) * 0.75)
-test_OHLC = len(OHLCV) - train_OHLC
-train_OHLC, test_OHLC = OHLCV[0:train_OHLC, :], OHLCV[train_OHLC:len(OHLCV), :]
+train_len = int(len(OHLCV) * 0.75)
+test_len = len(OHLCV) - train_len
+train_OHLC, test_OHLC = OHLCV[0:train_len, :], OHLCV[train_len:, :]
 
 # TIME-SERIES DATASET (FOR TIME T, VALUES FOR TIME T+1)
-num_steps = 30
+num_steps = 7
 num_features = len(columns)
-num_predicts = 2
+num_predicts = 1
 num_neurons = num_features + num_predicts
 trainX, trainY = new_dataset(train_OHLC, num_steps, num_predicts)
 testX, testY = new_dataset(test_OHLC, num_steps, num_predicts)
@@ -56,43 +57,28 @@ def create_model(num_features, num_steps, num_predicts):
     num_neurons = num_features + num_predicts
     model = Sequential()
     model.add(LSTM(num_neurons, activation='relu', input_shape=(num_steps, num_features)))
-    model.add(RepeatVector(num_predicts))
-    model.add(LSTM(num_neurons, activation='relu', return_sequences=True))
     model.add(TimeDistributed(Dense(num_features)))
     model.compile(optimizer='adam', loss='mse')
     return model
 
 try:
-    model = load_model('BTC_DAY_1.keras')
+    model = load_model('BNB_HOUR_4.keras')
 except OSError as e:
     model = create_model(num_features, num_steps, num_predicts)
     model.fit(trainX, trainY, epochs=500, batch_size=100, verbose=2)
-    model.save('BTC_DAY_1.keras')
+    model.save('BNB_HOUR_4.keras')
 
 # PREDICTION
 trainPredict = model.predict(trainX, use_multiprocessing=True)
-testPredict = model.predict(testX, use_multiprocessing=True)
+testPredict = model.predict(testX[-7:], use_multiprocessing=True)
 
-
-# TRAINING RMSE
-trainmScore = [mean_squared_error(trainY[i], trainPredict[i], squared=False) for i in range(len(trainY))]
-print('Train RMSE: %.2f' % (trainmScore[-1]))
-
-# TEST RMSE
-testmScore = [mean_squared_error(testY[i], testPredict[i], squared=False) for i in range(len(testY))]
-print('Test RMSE: %.2f' % (testmScore[-1]))
-
-# TRAINING RMSE
-trainpScore = [mean_absolute_percentage_error(trainY[i], trainPredict[i]) for i in range(len(trainY))]
-print('Train RMAPE: %.2f' % (trainpScore[-1]))
-
-# TEST RMSE
-testpScore = [mean_absolute_percentage_error(testY[i], testPredict[i]) for i in range(len(testY))]
-print('Test RMAPE: %.2f' % (testpScore[-1]))
 
 # Next n predictions
 print("next train", trainPredict[-1])
 print("Next test", testPredict[-1])
+
+
+dfx = pd.DataFrame([t[0] for t in trainPredict], columns=[c + '_pred' for c in columns])
 
 
 main_plot = make_subplots(
@@ -131,6 +117,18 @@ main_plot.add_trace(
     ),
     row=1, col=1
 )
+"""
+main_plot.add_trace(
+    go.Candlestick(
+        x=list(range(len(trainmScore))),
+        open=train_df[b.OPEN+"_pred"],
+        high=train_df[b.HIGH+"_pred"],
+        close=train_df[b.CLOSE+"_pred"],
+        low=train_df[b.LOW+"_pred"],
+    ),
+    row=1, col=1
+)
+"""
 
 main_plot.add_trace(
     go.Scatter(

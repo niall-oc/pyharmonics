@@ -36,6 +36,5 @@ dependencies = [
     "kaleido",
     "pandas",
     "scikit-learn",
-    "keras",
     "tensorflow"
 ]
