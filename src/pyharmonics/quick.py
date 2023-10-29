@@ -17,21 +17,43 @@ def whats_new(cd, limit_to=-1):
     hs.search(limit_to=limit_to)
     p = HarmonicPlotter(t)
     p.add_peaks()
-    p.add_harmonic_plots(hs.get_patterns(hs.XABCD))
-    p.add_harmonic_plots(hs.get_patterns(hs.ABCD))
-    p.add_harmonic_plots(hs.get_patterns(hs.ABC))
+    p.add_harmonic_plots(hs.get_patterns(family=hs.XABCD))
+    p.add_harmonic_plots(hs.get_patterns(family=hs.ABCD))
+    p.add_harmonic_plots(hs.get_patterns(family=hs.ABC))
     p.show()
     return hs
 
-def whats_new_binance(symbol, interval, limit_to=-1):
+def whats_new_binance(symbol, interval, limit_to=-1, candles=1000):
     bc = BinanceCandleData()
-    bc.get_candles(symbol, interval, 1000)
+    bc.get_candles(symbol, interval, candles)
     whats_new(bc, limit_to=limit_to)
 
-def whats_new_yahoo(symbol, interval, limit_to=-1):
+def whats_new_yahoo(symbol, interval, limit_to=-1, candles=1000):
     yc = YahooCandleData()
-    yc.get_candles(symbol, interval)
+    yc.get_candles(symbol, interval, candles)
     whats_new(yc, limit_to=limit_to)
+
+def whats_forming(cd, limit_to=10, percent_complete=0.8):
+    t = OHLCTechnicals(cd.df, cd.symbol, cd.interval)
+    hs = HarmonicSearch(t)
+    hs.forming(limit_to=limit_to, percent_c_to_d=percent_complete)
+    p = HarmonicPlotter(t)
+    p.add_peaks()
+    p.add_harmonic_plots(hs.get_patterns(family=hs.XABCD, formed=False))
+    p.add_harmonic_plots(hs.get_patterns(family=hs.ABCD, formed=False))
+    p.add_harmonic_plots(hs.get_patterns(family=hs.ABC, formed=False))
+    p.show()
+    return hs
+
+def whats_forming_binance(symbol, interval, limit_to=10, percent_complete=0.8, candles=1000):
+    bc = BinanceCandleData()
+    bc.get_candles(symbol, interval, candles)
+    whats_forming(bc, limit_to=limit_to, percent_complete=percent_complete)
+
+def whats_forming_yahoo(symbol, interval, limit_to=10, percent_complete=0.8, candles=1000):
+    yc = YahooCandleData()
+    yc.get_candles(symbol, interval, candles)
+    whats_forming(yc, limit_to=limit_to, percent_complete=percent_complete)
 
 def whats_options_volume(symbol):
     yo = YahooOptionData(symbol)
