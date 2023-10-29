@@ -38,7 +38,7 @@ class YahooOptionData:
         self.symbol = symbol
         self.ticker = yf.Ticker(self.symbol)
         self.options = {}
-        self.price = float(self.ticker.info['currentPrice'])
+        self.price = float(self.ticker.fast_info['lastPrice'])
 
     def analyse_options(self, top=30, trend='openInterest'):
         """
