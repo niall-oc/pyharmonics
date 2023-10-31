@@ -1,5 +1,5 @@
 from pyharmonics.marketdata import BinanceCandleData, YahooOptionData
-from pyharmonics.search import HarmonicSearch
+from pyharmonics.search import HarmonicSearch, DivergenceSearch
 from pyharmonics import OHLCTechnicals, Position, Technicals
 from pyharmonics.plotter import HarmonicPlotter, PositionPlotter, Plotter, OptionPlotter
 import pandas as pd
@@ -16,8 +16,11 @@ m.search()
 
 def test_ohlc_technicals_plotter():
     p = HarmonicPlotter(t)
+    d = DivergenceSearch(t)
+    d.search()
     p.add_peaks()
     p.add_harmonic_plots(m.get_patterns(family=m.ABC))
+    p.add_divergence_plots(d.get_patterns())
     p.show()
 
 def test_single_technicals_plotter():
@@ -35,6 +38,9 @@ def test_position_plotter():
     pattern = patterns[m.XABCD][0]
     position = Position(pattern, pattern.y[-1], 1000)
     p = PositionPlotter(t, position)
+    d = DivergenceSearch(t)
+    d.search()
+    p.add_divergence_plots(d.get_patterns())
     p.show()
 
 def test_option_plotter():

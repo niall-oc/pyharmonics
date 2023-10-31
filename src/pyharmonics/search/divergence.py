@@ -1,5 +1,6 @@
 from pyharmonics import constants
 from pyharmonics.patterns import Divergence
+from pyharmonics.technicals import TechnicalsBase
 
 class DivergenceSearch:
     HIDDEN = 'Hidden'
@@ -8,7 +9,7 @@ class DivergenceSearch:
     BULLISH = constants.BULLISH
     BEARISH = constants.BEARISH
 
-    def __init__(self, technicals):
+    def __init__(self, technicals: TechnicalsBase):
         """
         """
         self.t = technicals
@@ -17,10 +18,11 @@ class DivergenceSearch:
 
     def __is_bullish(self, start, end, indicator, candle_spread):
         locater = self.df.iloc
-        x = (start, end)
+        x = self.t.get_index_x([start, end])
         if locater[start][indicator] < locater[end][indicator] and locater[start][constants.LOW] >= locater[end][constants.LOW]:
             # Regular Bullish Divergence
             self.found[indicator].append(Divergence(
+                indicator,
                 self.REGULAR,
                 x,
                 (locater[start][constants.LOW], locater[end][constants.LOW],),
@@ -31,6 +33,7 @@ class DivergenceSearch:
         elif locater[start][indicator] > locater[end][indicator] and locater[start][constants.LOW] < locater[end][constants.LOW]:
             # hidden Bullish Divergence.
             self.found[indicator].append(Divergence(
+                indicator,
                 self.HIDDEN,
                 x,
                 (locater[start][constants.LOW], locater[end][constants.LOW],),
@@ -42,9 +45,10 @@ class DivergenceSearch:
 
     def __is_bearish(self, start, end, indicator, candle_spread):
         locater = self.df.iloc
-        x = (start, end)
+        x = self.t.get_index_x([start, end])
         if locater[start][indicator] > locater[end][indicator] and locater[start][constants.HIGH] <= locater[end][constants.HIGH]:
             self.found[indicator].append(Divergence(
+                indicator,
                 self.REGULAR,
                 x,
                 (locater[start][constants.HIGH], locater[end][constants.HIGH],),
@@ -55,6 +59,7 @@ class DivergenceSearch:
         elif locater[start][indicator] < locater[end][indicator] and locater[start][constants.HIGH] > locater[end][constants.HIGH]:
             # hidden Bullish Divergence.
             self.found[indicator].append(Divergence(
+                indicator,
                 self.HIDDEN,
                 x,
                 (locater[start][constants.HIGH], locater[end][constants.HIGH],),
@@ -90,9 +95,9 @@ class DivergenceSearch:
         """
         self.found = {self.t.RSI: [], self.t.MACD: []}
         self._search(self.t.RSI, self.t.RSI_DIPS, self.__is_bullish, limit_to, candle_spread)
-        self._search(self.t.RSI, self.t.RSI_DIPS, self.__is_bearish, limit_to, candle_spread)
+        self._search(self.t.RSI, self.t.RSI_PEAKS, self.__is_bearish, limit_to, candle_spread)
         self._search(self.t.MACD, self.t.MACD_DIPS, self.__is_bullish, limit_to, candle_spread)
-        self._search(self.t.MACD, self.t.MACD_DIPS, self.__is_bearish, limit_to, candle_spread)
+        self._search(self.t.MACD, self.t.MACD_PEAKS, self.__is_bearish, limit_to, candle_spread)
 
     def get_patterns(self):
         return self.found

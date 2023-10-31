@@ -147,6 +147,7 @@ class XABCDPattern(ABCPattern):
 class Divergence:
     def __init__(
         self,
+        indicator: str,
         name: str,
         x: tuple,
         y: tuple,
@@ -154,6 +155,7 @@ class Divergence:
         ind_y: tuple,
         bullish: bool
     ):
+        self.indicator = indicator
         self.name = name
         self.x = x
         self.y = y
@@ -163,6 +165,7 @@ class Divergence:
 
     def to_dict(self):
         return dict(
+            indicator=self.indicator,
             name=self.name,
             bullish=self.bullish,
             x=self.x,

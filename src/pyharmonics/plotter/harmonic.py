@@ -160,25 +160,26 @@ class PlotterBase(abc.ABC):
             )
         )
 
-    def add_divergence_plots(self, patterns):
-        for p in patterns:
-            color = 'lightgreen' if p.bullish else '#ff7766'
-            self.main_plot.add_trace(
-                go.Scatter(
-                    mode="lines+markers",
-                    x=p.ind_x,
-                    y=p.ind_y,
-                    line=dict(color=color, width=2)
-                ), row=self.ROW_MAP[p.indicator]['row'], col=self.ROW_MAP[p.indicator]['col']
-            )
-            self.main_plot.add_trace(
-                go.Scatter(
-                    mode="lines+markers",
-                    x=p.x,
-                    y=p.y,
-                    line=dict(color=color, width=2)
+    def add_divergence_plots(self, divergences):
+        for indicator, patterns in divergences.items():
+            for p in patterns:
+                color = 'lightgreen' if p.bullish else '#ff7766'
+                self.main_plot.add_trace(
+                    go.Scatter(
+                        mode="lines+markers",
+                        x=p.ind_x,
+                        y=p.ind_y,
+                        line=dict(color=color, width=2)
+                    ), row=self.ROW_MAP[p.indicator]['row'], col=self.ROW_MAP[p.indicator]['col']
                 )
-            )
+                self.main_plot.add_trace(
+                    go.Scatter(
+                        mode="lines+markers",
+                        x=p.x,
+                        y=p.y,
+                        line=dict(color=color, width=2)
+                    )
+                )
 
     def _add_abcd_pattern(self, p, prices):
         """
