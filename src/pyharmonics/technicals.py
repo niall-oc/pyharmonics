@@ -353,6 +353,7 @@ class TechnicalsBase(abc.ABC):
                         self.divergences[ind][is_bullish][i] = 1
         return None
 
+
 class OHLCTechnicals(TechnicalsBase):
     def __init__(self, df, symbol, interval, indicator_config=None, sma_config=None, ema_config=None, peak_spacing=10):
         super(OHLCTechnicals, self).__init__(df, indicator_config=indicator_config, sma_config=sma_config, peak_spacing=peak_spacing)

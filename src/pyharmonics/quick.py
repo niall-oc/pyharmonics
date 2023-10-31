@@ -3,6 +3,7 @@ from pyharmonics.technicals import OHLCTechnicals, Technicals
 from pyharmonics.search import HarmonicSearch
 from pyharmonics.positions import Position
 from pyharmonics.plotter import HarmonicPlotter, PositionPlotter, OptionPlotter
+from pyharmonics import constants
 
 
 def play_position(hs, pattern, strike, dollar_amount):

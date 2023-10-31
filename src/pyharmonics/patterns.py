@@ -143,3 +143,34 @@ class XABCDPattern(ABCPattern):
     def __repr__(self):
         args = [f'{k}={repr(v)}' for k, v in self.to_dict().items()]
         return f"XABCDPattern({', '.join(args)})"
+
+class Divergence:
+    def __init__(
+        self,
+        name: str,
+        x: tuple,
+        y: tuple,
+        ind_x: tuple,
+        ind_y: tuple,
+        bullish: bool
+    ):
+        self.name = name
+        self.x = x
+        self.y = y
+        self.ind_x = ind_x
+        self.ind_y = ind_y
+        self.bullish = bullish
+
+    def to_dict(self):
+        return dict(
+            name=self.name,
+            bullish=self.bullish,
+            x=self.x,
+            y=self.y,
+            ind_x=self.ind_x,
+            ind_y=self.ind_y
+        )
+
+    def __repr__(self):
+        args = [f'{k}={repr(v)}' for k, v in self.to_dict().items()]
+        return f"Divergence({', '.join(args)})"
