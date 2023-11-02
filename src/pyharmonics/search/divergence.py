@@ -15,7 +15,7 @@ class DivergenceSearch:
         self.t = technicals
         self.df = technicals.df
         self.found = {self.t.RSI: [], self.t.MACD: []}
-    
+
     def __exact_dip(self, index, trend, spread):
         """
 
@@ -104,7 +104,7 @@ class DivergenceSearch:
                 count += 1
             i -= 1
 
-    def search(self, candle_spread=2, limit_to=3):
+    def search(self, candle_spread=20, limit_to=3):
         """
         """
         self.found = {self.t.RSI: [], self.t.MACD: []}

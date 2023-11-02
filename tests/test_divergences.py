@@ -15,5 +15,5 @@ def test_divergence_search():
     found = d.get_patterns()
     print(len(found[t.RSI]))
     print(len(found[t.MACD]))
-    assert len(found[t.RSI]) == 17
-    assert len(found[t.MACD]) == 25
+    assert len(found[t.RSI]) == 21
+    assert len(found[t.MACD]) == 29
