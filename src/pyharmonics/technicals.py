@@ -300,59 +300,6 @@ class TechnicalsBase(abc.ABC):
             # return lows - PEAK_TYPE = 1
             return [i for i in self.peak_data if i[self.PEAK_TYPE]]
 
-    def _build_peak_slopes(self):
-        """
-        Calculate slopes for peaks.
-        """
-        DF_LEN = len(self.df)
-
-        # Trend low peak slopes
-        price_low_slopes = [None] * DF_LEN
-        lows = self.filter_peak_data(lows=True)
-        for i in range(1, len(lows)):
-            price_low_slopes[lows[i][self.PEAK_INDEX]] = utils.line_slope(
-                lows[i][self.PEAK_PRICE], lows[i - 1][self.PEAK_PRICE],
-                lows[i][self.PEAK_INDEX], lows[i - 1][self.PEAK_INDEX]
-            )
-
-        self.reverse_fill_na(price_low_slopes, limit_index=self.lows[0])
-
-        # Trend high peak slopes
-        price_high_slopes = [None] * DF_LEN
-        highs = self.filter_peak_data(lows=False)
-        for i in range(1, len(highs)):
-            price_high_slopes[highs[i][self.PEAK_INDEX]] = utils.line_slope(
-                highs[i][self.PEAK_PRICE], highs[i - 1][self.PEAK_PRICE],
-                highs[i][self.PEAK_INDEX], highs[i - 1][self.PEAK_INDEX]
-            )
-        self.reverse_fill_na(price_high_slopes, limit_index=self.highs[0])
-
-        self.divergences = {}
-        for ind, peaks in self.peak_indicators.items():
-            self.divergences[ind] = {}
-            for is_bullish, indexes in peaks.items():
-                # get readings
-                x, ind_values = self.get_series_x_y(indexes, ind)
-                # measure slopes
-                this_trend = [None] * DF_LEN
-                for i in range(1, len(indexes)):
-                    this_trend[indexes[i]] = utils.line_slope(ind_values[i], ind_values[i - 1], indexes[i], indexes[i - 1])
-                self.reverse_fill_na(this_trend, limit_index=indexes[0])
-                # check divergences
-                # None means nothing is diverging
-                self.divergences[ind][is_bullish] = [0] * DF_LEN
-                slopes = price_low_slopes if is_bullish else price_high_slopes
-                for i in range(DF_LEN):
-                    # if nothing to compare, or both slopes moving in the same direction
-                    if slopes[i] is None or this_trend[i] is None or\
-                       (slopes[i] > 0.0 and this_trend[i] > 0.0) or (slopes[i] < 0.0 and this_trend[i] < 0.0):
-                        continue
-                    else:
-                        # If slopes are not running in the same direction there is a divergence
-                        # The is_bullish flag indicates the direction of the divergence ie. bullish or
-                        self.divergences[ind][is_bullish][i] = 1
-        return None
-
 
 class OHLCTechnicals(TechnicalsBase):
     def __init__(self, df, symbol, interval, indicator_config=None, sma_config=None, ema_config=None, peak_spacing=10):

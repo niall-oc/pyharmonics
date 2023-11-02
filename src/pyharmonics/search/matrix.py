@@ -13,7 +13,7 @@ class HarmonicSearch:
     ABC = 'ABC'
     PEAK = -1
 
-    def __init__(self, technicals, patterns=None, fib_tolerance=0.03):
+    def __init__(self, technicals, patterns=None, fib_tolerance=0.03, strict=True):
         """
         Parameters
         ----------
@@ -32,7 +32,7 @@ class HarmonicSearch:
         self._forming = {self.XABCD: [], self.ABCD: [], self.ABC: []}
         self.PATTERNS = utils.get_pattern_definition(fib_tolerance, patterns or constants.MATRIX_PATTERNS)
         self.td = technicals
-        self._build_fib_matrix()
+        self._build_fib_matrix(strict)
 
     def get_patterns(self, family=None, formed=True):
         group = self._formed
@@ -43,7 +43,7 @@ class HarmonicSearch:
             group = {family: group[family]}
         return group
 
-    def _build_fib_matrix(self):
+    def _build_fib_matrix(self, strict):
         """
         Consider any point as a the start of a leg.
         Calculate all retraces off any peak.
@@ -57,14 +57,14 @@ class HarmonicSearch:
             # For each peak point as a starting point.
             if self.td.peak_type[i] == 0:  # for a bull pattern a dip is a starting point
                 # Build from low
-                self._build_from_low(matrix, i)
+                self._build_from_low(matrix, i, strict)
             else:
                 # Build from high
-                self._build_from_high(matrix, i)
+                self._build_from_high(matrix, i, strict)
         self.fib_matrix = matrix
         self.MATRIX_LEN = len(self.fib_matrix)
 
-    def _build_from_low(self, matrix, index):
+    def _build_from_low(self, matrix, index, strict):
         """
         From a low point ( price low )
         measure all retraces of the next peak price after this low.
@@ -80,24 +80,26 @@ class HarmonicSearch:
             _, this_price, is_high = self.td.peak_data[i]
             max_price = max(max_price, this_price)
             min_price = min(min_price, this_price)
+            row[i] = False
             if no_retraces_remain or this_price == max_price and min_price < start_price:
                 # no more retraces
-                row[i] = False
                 no_retraces_remain = True
             elif this_price == max_price and is_high and min_price > start_price:
                 # This is the new highest price
                 row[i] = self.PEAK
                 min_price = this_price
                 move = abs(max_price - start_price)
-            elif this_price > min_price:
-                row[i] = False
             elif this_price == min_price:
-                row[i] = (max_price - this_price) / move
+                retrace = (max_price - this_price) / move
+                if not strict:
+                    row[i] = retrace
+                elif retrace >= 0.382:
+                    row[i] = retrace
             else:
                 pass
         return matrix
 
-    def _build_from_high(self, matrix, index):
+    def _build_from_high(self, matrix, index, strict):
         """
         From a high point ( price high )
         measure all retraces of the next peak price after this high.
@@ -113,19 +115,21 @@ class HarmonicSearch:
             _, this_price, is_high = self.td.peak_data[i]
             min_price = min(min_price, this_price)
             max_price = max(max_price, this_price)
+            row[i] = False
             if no_retraces_remain or this_price == min_price and max_price > start_price:
                 # no more retraces
-                row[i] = False
                 no_retraces_remain = True
             elif this_price == min_price and not is_high and max_price < start_price:
                 # This is the new lowest price
                 row[i] = self.PEAK
                 max_price = this_price
                 move = start_price - min_price
-            elif this_price < max_price:
-                row[i] = False
             elif this_price == max_price:
-                row[i] = abs((this_price - min_price) / move)
+                retrace = abs((this_price - min_price) / move)
+                if not strict:
+                    row[i] = retrace
+                elif retrace >= 0.382:
+                    row[i] = retrace
             else:
                 pass
         return matrix
