@@ -32,7 +32,7 @@ class HarmonicSearch:
         self._forming = {self.XABCD: [], self.ABCD: [], self.ABC: []}
         self.PATTERNS = utils.get_pattern_definition(fib_tolerance, patterns or constants.MATRIX_PATTERNS)
         self.td = technicals
-        self.strict_retrace = 0.382 * (1- fib_tolerance)
+        self.strict_retrace = 0.382 * (1 - fib_tolerance)
         self._build_fib_matrix(strict)
 
     def get_patterns(self, family=None, formed=True):
