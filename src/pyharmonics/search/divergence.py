@@ -20,28 +20,29 @@ class DivergenceSearch:
         """
 
         """
-        idx = list(range(index - spread, index + spread))
-        return min(zip(self.df[trend].values[idx], idx))[1]
+        idx = list(range(max(index - spread, 0), min(index + spread, len(self.df))))
+        return min(zip(self.df[trend].values[idx], idx))
 
     def __exact_peak(self, index, trend, spread):
         """
 
         """
-        idx = list(range(index - spread, index + spread))
-        return max(zip(self.df[trend].values[idx], idx))[1]
+        idx = list(range(max(index - spread, 0), min(index + spread, len(self.df))))
+        return max(zip(self.df[trend].values[idx], idx))
 
     def __is_bullish(self, start, end, indicator, price, candle_spread):
         locater = self.df.iloc
-        x = self.t.get_index_x([start, end])
+        y1, x1 = self.__exact_dip(start, indicator, candle_spread)
+        y2, x2 = self.__exact_dip(end, indicator, candle_spread)
         if locater[start][indicator] < locater[end][indicator] and locater[start][price] >= locater[end][price]:
             # Regular Bullish Divergence
             self.found[indicator].append(Divergence(
                 indicator,
                 self.REGULAR,
-                x,
+                self.t.get_index_x([start, end]),
                 (locater[start][price], locater[end][price],),
-                x,
-                (locater[start][indicator], locater[end][indicator],),
+                self.t.get_index_x([x1, x2]),
+                [y1, y2],
                 constants.BULLISH
             ))
         elif locater[start][indicator] > locater[end][indicator] and locater[start][price] < locater[end][price]:
@@ -49,25 +50,26 @@ class DivergenceSearch:
             self.found[indicator].append(Divergence(
                 indicator,
                 self.HIDDEN,
-                x,
+                self.t.get_index_x([start, end]),
                 (locater[start][price], locater[end][price],),
-                x,
-                (locater[start][indicator], locater[end][indicator],),
+                self.t.get_index_x([x1, x2]),
+                [y1, y2],
                 constants.BULLISH
             ))
             pass
 
     def __is_bearish(self, start, end, indicator, price, candle_spread):
         locater = self.df.iloc
-        x = self.t.get_index_x([start, end])
+        y1, x1 = self.__exact_peak(start, indicator, candle_spread)
+        y2, x2 = self.__exact_peak(end, indicator, candle_spread)
         if locater[start][indicator] > locater[end][indicator] and locater[start][price] <= locater[end][price]:
             self.found[indicator].append(Divergence(
                 indicator,
                 self.REGULAR,
-                x,
+                self.t.get_index_x([start, end]),
                 (locater[start][price], locater[end][price],),
-                x,
-                (locater[start][indicator], locater[end][indicator],),
+                self.t.get_index_x([x1, x2]),
+                [y1, y2],
                 constants.BEARISH
             ))
         elif locater[start][indicator] < locater[end][indicator] and locater[start][price] > locater[end][price]:
@@ -75,10 +77,10 @@ class DivergenceSearch:
             self.found[indicator].append(Divergence(
                 indicator,
                 self.HIDDEN,
-                x,
+                self.t.get_index_x([start, end]),
                 (locater[start][price], locater[end][price],),
-                x,
-                (locater[start][indicator], locater[end][indicator],),
+                self.t.get_index_x([x1, x2]),
+                [y1, y2],
                 constants.BEARISH
             ))
 
