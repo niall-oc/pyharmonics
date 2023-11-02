@@ -34,7 +34,7 @@ class DivergenceSearch:
         locater = self.df.iloc
         y1, x1 = self.__exact_dip(start, indicator, candle_spread)
         y2, x2 = self.__exact_dip(end, indicator, candle_spread)
-        if locater[start][indicator] < locater[end][indicator] and locater[start][price] >= locater[end][price]:
+        if y1 < y2 and locater[start][price] >= locater[end][price]:
             # Regular Bullish Divergence
             self.found[indicator].append(Divergence(
                 indicator,
@@ -45,7 +45,7 @@ class DivergenceSearch:
                 [y1, y2],
                 constants.BULLISH
             ))
-        elif locater[start][indicator] > locater[end][indicator] and locater[start][price] < locater[end][price]:
+        elif y1 > y2 and locater[start][price] < locater[end][price]:
             # hidden Bullish Divergence.
             self.found[indicator].append(Divergence(
                 indicator,
@@ -62,7 +62,7 @@ class DivergenceSearch:
         locater = self.df.iloc
         y1, x1 = self.__exact_peak(start, indicator, candle_spread)
         y2, x2 = self.__exact_peak(end, indicator, candle_spread)
-        if locater[start][indicator] > locater[end][indicator] and locater[start][price] <= locater[end][price]:
+        if y1 > y2 and locater[start][price] <= locater[end][price]:
             self.found[indicator].append(Divergence(
                 indicator,
                 self.REGULAR,
@@ -72,7 +72,7 @@ class DivergenceSearch:
                 [y1, y2],
                 constants.BEARISH
             ))
-        elif locater[start][indicator] < locater[end][indicator] and locater[start][price] > locater[end][price]:
+        elif y1 < y2 and locater[start][price] > locater[end][price]:
             # hidden Bullish Divergence.
             self.found[indicator].append(Divergence(
                 indicator,
@@ -100,7 +100,13 @@ class DivergenceSearch:
                     continue
                 else:  # Start and end dips located
                     start = i
-                    search_func(start, end, indicator, price, candle_spread)
+                    span_count = 3
+                    # walk back 3 peaks
+                    while start > 0 and span_count > 0:
+                        search_func(start, end, indicator, price, candle_spread)
+                        while not self.df.iloc[start][peaks]:
+                            start -= 1
+                        span_count -= 1
                     end = start
                     start = -1
                 count += 1
