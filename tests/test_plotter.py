@@ -55,7 +55,7 @@ def test_position_plotter():
     p.show()
 
 def test_option_plotter():
-    yo = YahooOptionData('WBA')
-    yo.analyse_options(trend='openInterest')
+    yo = YahooOptionData('AAPL')
+    yo.analyse_options(trend='volume')
     p = OptionPlotter(yo, yo.ticker.options[0])
     p.show()
