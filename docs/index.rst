@@ -23,6 +23,8 @@ Installation
 .. toctree::
  :maxdepth: 2
 
+.. include:: cource/quick.rst
+
 .. include:: source/marketdata.rst
 
 .. include:: source/technicals.rst
