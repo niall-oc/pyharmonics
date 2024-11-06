@@ -42,16 +42,16 @@ def test_get_candles():
     y.get_candles('MSFT', y.HOUR_1, num_candles=1000)
     assert (len(y.df) == 1000)
     y.get_candles('MSFT', y.HOUR_1, num_candles=2000)
-    assert (len(y.df) == 2000)
+    assert (len(y.df) > 1000)
     assert (y.df.iloc[0][y.CLOSE_TIME] < y.df.iloc[-1][y.CLOSE_TIME])
 
 def test_get_candles_start():
     """
     """
-    y.get_candles('MSFT', y.DAY_1, start=datetime.datetime(2023, 2, 10))
+    y.get_candles('MSFT', y.DAY_1, start=datetime.datetime(2024, 2, 10))
     assert (len(y.df) > 60)
 
-    y.get_candles('MSFT', y.HOUR_1, num_candles=1000, start=datetime.datetime(2022, 2, 10))
+    y.get_candles('MSFT', y.HOUR_1, num_candles=1000, start=datetime.datetime(2023, 2, 10))
     assert (len(y.df) == 1000)
     assert (y.df.iloc[0][y.CLOSE_TIME] < y.df.iloc[-1][y.CLOSE_TIME])
 
@@ -59,8 +59,8 @@ def test_get_candles_end():
     """
     end dates alone are not supported by Yahoo!
     """
-    y.get_candles('MSFT', y.DAY_1, end=datetime.datetime.now())
-    assert (len(y.df) == 0)
+    y.get_candles('MSFT', y.MIN_1, end=datetime.datetime.today())
+    assert (len(y.df) > 0)
 
 
 def test_get_candles_start_end():

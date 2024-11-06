@@ -1,4 +1,4 @@
-from .matrix import HarmonicSearch
+from .harmonic import HarmonicSearch
 from .divergence import DivergenceSearch
 
 __all__ = (

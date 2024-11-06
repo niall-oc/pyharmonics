@@ -26,14 +26,14 @@ where
     :linenos:
     
     >>> from pyharmonics.marketdata import BinanceCandleData
-    >>> from pyharmonics.search import MatrixSearch
+    >>> from pyharmonics.search import HarmonicSearch
     >>> from pyharmonics.technicals import Technicals
     >>> b = BinanceCandleData()
     >>> b.get_candles('ETHUSDT', b.HOUR_4, 400)
     >>> t = Technicals(b.df, b.symbol, b.interval)
-    >>> m = MatrixSearch(t)
-    >>> m.search()
-    >>> patterns = m.get_patterns()
+    >>> h = HarmonicSearch(t)
+    >>> h.search()
+    >>> patterns = h.get_patterns()
     >>> patterns[m.XABCD]
     []
     >>> patterns[m.ABCD]
