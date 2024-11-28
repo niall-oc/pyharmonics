@@ -90,7 +90,7 @@ class HarmonicSearch:
                 row[i] = self.PEAK
                 min_price = this_price
                 move = abs(max_price - start_price)
-            elif this_price == min_price and not is_high: 
+            elif this_price == min_price and not is_high:
                 # this_price is the the min_price after the move peak.
                 # retraces from a low must be another low is_high must be false.
                 retrace = (max_price - this_price) / move
@@ -127,7 +127,7 @@ class HarmonicSearch:
                 row[i] = self.PEAK
                 max_price = this_price
                 move = start_price - min_price
-            elif this_price == max_price and is_high: 
+            elif this_price == max_price and is_high:
                 # this_price is the the max_price after the move dip.
                 # retraces from a peak must be another peak is_high must be true.
                 retrace = abs((this_price - min_price) / move)
