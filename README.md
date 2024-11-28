@@ -2,6 +2,8 @@
 
 pyharmonics detects harmonic patterns in OHLC candle data for any stock or crypto asset.  See http://www.harmonictrader.com for more information on harmonic patterns and follow author Scott Carney.
 
+video tutorial https://www.youtube.com/watch?v=oLPU_f7AiGE
+
 ## Installation
 
 From git
@@ -60,8 +62,8 @@ Create a technicals object for further analysis.
 
 Search for a harmonic pattern.
 ```
->>> from pyharmonics.search import MatrixSearch
->>> m = MatrixSearch(t)
+>>> from pyharmonics.search import HarmonicSearch
+>>> m = HarmonicSearch(t)
 >>> m.search()
 ```
 
@@ -69,7 +71,7 @@ Plot the findings.
 ```
 >>> from pyharmonics.plotter import Plotter
 >>> p = Plotter(t, 'BTCUSDT', b.MIN_15)
->>> p.add_matrix_plots(m.get_patterns(family=m.XABCD))
+>>> p.add_harmonic_plots(m.get_patterns(family=m.XABCD))
 >>> p.show()
 ```
 
@@ -79,7 +81,7 @@ You will see something like this.
 See all harmonic patterns.
 ```
 >>> p = Plotter(t, 'BTCUSDT', b.HOUR_1)
->>> p.add_matrix_plots(m.get_patterns())
+>>> p.add_harmonic_plots(m.get_patterns())
 >>> p.show()
 ```
 
@@ -88,10 +90,10 @@ You will see something like this.
 
 See all forming patterns.
 ```
->>> m = MatrixSearch(t)
->>> m.forming()
+>>> h = HarmonicSearch(t)
+>>> h.forming()
 >>> p = Plotter(t, 'BTCUSDT', b.HOUR_1)
->>> p.add_matrix_plots(m.get_patterns(formed=False))
+>>> p.add_harmonic_plots(h.get_patterns(formed=False))
 >>> p.show()
 ```
 etc.

@@ -30,12 +30,12 @@ def whats_new(cd, limit_to=-1):
 def whats_new_binance(symbol, interval, limit_to=-1, candles=1000):
     bc = BinanceCandleData()
     bc.get_candles(symbol, interval, candles)
-    whats_new(bc, limit_to=limit_to)
+    return whats_new(bc, limit_to=limit_to)
 
 def whats_new_yahoo(symbol, interval, limit_to=-1, candles=1000):
     yc = YahooCandleData()
     yc.get_candles(symbol, interval, candles)
-    whats_new(yc, limit_to=limit_to)
+    return whats_new(yc, limit_to=limit_to)
 
 def whats_forming(cd, limit_to=10, percent_complete=0.8):
     t = OHLCTechnicals(cd.df, cd.symbol, cd.interval)
@@ -55,21 +55,23 @@ def whats_forming(cd, limit_to=10, percent_complete=0.8):
 def whats_forming_binance(symbol, interval, limit_to=10, percent_complete=0.8, candles=1000):
     bc = BinanceCandleData()
     bc.get_candles(symbol, interval, candles)
-    whats_forming(bc, limit_to=limit_to, percent_complete=percent_complete)
+    return whats_forming(bc, limit_to=limit_to, percent_complete=percent_complete)
 
 def whats_forming_yahoo(symbol, interval, limit_to=10, percent_complete=0.8, candles=1000):
     yc = YahooCandleData()
     yc.get_candles(symbol, interval, candles)
-    whats_forming(yc, limit_to=limit_to, percent_complete=percent_complete)
+    return whats_forming(yc, limit_to=limit_to, percent_complete=percent_complete)
 
 def whats_options_volume(symbol):
     yo = YahooOptionData(symbol)
     yo.analyse_options(trend='volume')
     p = OptionPlotter(yo, yo.ticker.options[0])
     p.show()
+    return yo
 
 def whats_options_interest(symbol):
     yo = YahooOptionData(symbol)
     yo.analyse_options()
     p = OptionPlotter(yo, yo.ticker.options[0])
     p.show()
+    return yo

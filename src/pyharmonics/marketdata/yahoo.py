@@ -80,14 +80,14 @@ class YahooCandleData(CandleData):
         CandleData.MONTH_3: '3mo'
     }
     LIMITS = {
-        CandleData.MIN_1: '7d',
-        CandleData.MIN_5: '60d',
-        CandleData.MIN_15: '60d',
-        CandleData.HOUR_1: '730d',
-        CandleData.DAY_1: '10000mo',
-        CandleData.WEEK_1: '10000mo',
-        CandleData.MONTH_1: '10000mo',
-        CandleData.MONTH_3: '10000mo'
+        CandleData.MIN_1: 'max',
+        CandleData.MIN_5: 'max',
+        CandleData.MIN_15: 'max',
+        CandleData.HOUR_1: 'max',
+        CandleData.DAY_1: 'max',
+        CandleData.WEEK_1: 'max',
+        CandleData.MONTH_1: 'max',
+        CandleData.MONTH_3: 'max'
     }
 
     def __init__(self, schema=None, time_zone='Europe/Dublin', df_index=CandleData.DTS):
@@ -169,5 +169,6 @@ class YahooCandleData(CandleData):
             self.df = self.df[max(len(self.df) - self.num_candles, 0):]
 
 if __name__ == '__main__':
+    import datetime
     y = YahooCandleData()
-    y.get_candles('MSFT', y.HOUR_1, 200)
+    y.get_candles('MSFT', y.MIN_1, end=datetime.datetime.today())
