@@ -90,7 +90,9 @@ class HarmonicSearch:
                 row[i] = self.PEAK
                 min_price = this_price
                 move = abs(max_price - start_price)
-            elif this_price == min_price:
+            elif this_price == min_price and not is_high: 
+                # this_price is the the min_price after the move peak.
+                # retraces from a low must be another low is_high must be false.
                 retrace = (max_price - this_price) / move
                 if not strict:
                     row[i] = retrace
@@ -125,7 +127,9 @@ class HarmonicSearch:
                 row[i] = self.PEAK
                 max_price = this_price
                 move = start_price - min_price
-            elif this_price == max_price:
+            elif this_price == max_price and is_high: 
+                # this_price is the the max_price after the move dip.
+                # retraces from a peak must be another peak is_high must be true.
                 retrace = abs((this_price - min_price) / move)
                 if not strict:
                     row[i] = retrace
@@ -435,3 +439,25 @@ class HarmonicSearch:
                     b_idx -= 1
                 harmonics[(idx, b_idx, candle_idx,)] = constants.XABCDS | constants.ABCDS
         return harmonics
+
+if __name__ == '__main__':
+    from pyharmonics.marketdata import BinanceCandleData
+    from pyharmonics.search import DivergenceSearch
+    from pyharmonics import OHLCTechnicals
+    from pyharmonics.plotter import HarmonicPlotter
+    import datetime
+
+    present = int(datetime.datetime.now().timestamp() * 1000)
+
+    b = BinanceCandleData()
+    b.get_candles('BTCUSDT', b.HOUR_1, 1000)
+    t = OHLCTechnicals(b.df, b.symbol, b.interval, peak_spacing=10)
+    h = HarmonicSearch(t, fib_tolerance=0.03, strict=True)
+    h.search()
+    p = HarmonicPlotter(t)
+    d = DivergenceSearch(t)
+    d.search()
+    p.add_peaks()
+    p.add_harmonic_plots(h.get_patterns(family=h.XABCD))
+    p.add_divergence_plots(d.get_patterns())
+    p.show()
