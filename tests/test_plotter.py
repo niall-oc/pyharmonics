@@ -11,7 +11,7 @@ b = BinanceCandleData()
 b._set_params('BTCUSDT', b.HOUR_1, 1000)
 b.df = pd.read_pickle("tests/data/btc_test_data")
 t = OHLCTechnicals(b.df, b.symbol, b.interval, peak_spacing=10)
-h = HarmonicSearch(t, fib_tolerance=0.03, strict=False)
+h = HarmonicSearch(t, fib_tolerance=0.03)
 h.search()
 
 def test_XABCD():
@@ -23,14 +23,26 @@ def test_XABCD():
     p.add_divergence_plots(d.get_patterns())
     p.show()
 
-def test_XABCD_strict():
-    m = HarmonicSearch(t, fib_tolerance=0.03, strict=True)
+def test_ABCD():
+    m = HarmonicSearch(t, fib_tolerance=0.03, check_false_anchor=False)
     m.search()
     p = HarmonicPlotter(t)
     d = DivergenceSearch(t)
     d.search()
     p.add_peaks()
-    p.add_harmonic_plots(m.get_patterns(family=m.XABCD))
+    p.add_harmonic_plots(m.get_patterns(family=m.ABCD))
+    p.add_divergence_plots(d.get_patterns())
+    p.show()
+
+def test_ABCD_anchor():
+    m = HarmonicSearch(t, fib_tolerance=0.03, check_false_anchor=True)
+    m.search()
+    p = HarmonicPlotter(t)
+    d = DivergenceSearch(t)
+    p.title = p.plot_title + 'ANCHOR FLAG'
+    d.search()
+    p.add_peaks()
+    p.add_harmonic_plots(m.get_patterns(family=m.ABCD))
     p.add_divergence_plots(d.get_patterns())
     p.show()
 

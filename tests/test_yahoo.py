@@ -32,7 +32,7 @@ def test_YahooOptionData():
     """
     Analyse options for stock
     """
-    yo = YahooOptionData('TSLA')
+    yo = YahooOptionData('AAPL')
     yo.analyse_options()
     assert isinstance(yo.ticker.options[0], str)
 

@@ -30,7 +30,11 @@ class YahooOptionChain:
         self.losses['losses_y'] = self.losses['losses_y'].bfill().fillna(0.0)
         self.losses['pain'] = self.losses['losses_x'] + self.losses['losses_y']
         self.losses['pain'] = self.losses['pain'].map(lambda x: x or None).ffill().bfill()
-        self.min_pain = list(self.losses.loc[self.losses['pain'] == min(self.losses['pain'])].to_dict()['strike'].values())[0]
+        try:
+            self.min_pain = list(self.losses.loc[self.losses['pain'] == min(self.losses['pain'])].to_dict()['strike'].values())[0]
+        except TypeError:
+            # Early in the trading day options data has None values
+            self.min_pain = 0.0
 
 
 class YahooOptionData:

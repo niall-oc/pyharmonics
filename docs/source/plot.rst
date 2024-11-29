@@ -16,7 +16,7 @@ Plot the findings.
 
 You will see something like this.
 
-.. image:: ../images/newplot.png
+.. image:: newplot.png
   :alt: Fully formed patterns
 
 See all harmonic patterns.
@@ -29,7 +29,7 @@ See all harmonic patterns.
 
 You will see something like this.
 
-.. image:: ../images/all_patterns.png
+.. image:: all_patterns.png
   :alt: Fully formed patterns
 
 See all forming patterns.
@@ -59,7 +59,7 @@ Position add_matrix_plots
 
 The most useful plot feature is the position plot.
 
-.. image:: ../images/positionplot.png
+.. image:: positionplot.png
   :alt: A tradable position.
 
 
@@ -106,7 +106,7 @@ The trend or measure for your options activity can be ``volume`` or ``openIntere
 
 Although the expiry dates are present in the YahooOptionsData object you must specifically select one to view.
 
-.. image:: ../images/optionplot.png
+.. image:: optionplot.png
   :alt: Options by volume
 
 .. note::
