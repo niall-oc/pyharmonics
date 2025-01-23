@@ -397,6 +397,9 @@ class PlotterBase(abc.ABC):
             )
         pio.write_image(self.main_plot, f"{location}", width=4 * dpi, height=2 * dpi, scale=1)
 
+    def to_image(self, dpi=600):
+        return pio.to_image(self.main_plot, width=4 * dpi, height=2 * dpi, scale=1)
+
 
 class HarmonicPlotter(PlotterBase):
     def __init__(self, technicals: OHLCTechnicals, row_map=None, colors=None, plot_ema=False, plot_sma=True):

@@ -1,5 +1,6 @@
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import plotly.io as pio
 
 class OptionPlotter:
     def __init__(self, yo, expiry):
@@ -151,6 +152,12 @@ class OptionPlotter:
     def show(self):
         self.main_plot.show()
 
+    def save_plot_image(self, location, dpi=600):
+        pio.write_image(self.main_plot, f"{location}", width=4 * dpi, height=2 * dpi, scale=1)
+
+    def to_image(self, dpi=600):
+        return pio.to_image(self.main_plot, width=4 * dpi, height=2 * dpi, scale=1)
+
 class OptionSurface:
     def __init__(self, yo):
         self.yo = yo
@@ -207,3 +214,9 @@ class OptionSurface:
 
     def show(self):
         self.main_plot.show()
+
+    def save_plot_image(self, location, dpi=600):
+        pio.write_image(self.main_plot, f"{location}", width=4 * dpi, height=2 * dpi, scale=1)
+
+    def to_image(self, dpi=600):
+        return pio.to_image(self.main_plot, width=4 * dpi, height=2 * dpi, scale=1)
