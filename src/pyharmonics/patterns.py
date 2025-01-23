@@ -59,7 +59,7 @@ class ABCPattern(HarmonicPattern):
 
     def __repr__(self):
         args = [f'{k}={repr(v)}' for k, v in self.to_dict().items()]
-        return f"ABCPattern({', '.join(args)})"
+        return f"{self.__class__.__name__}({', '.join(args)})"
 
     def _set_hash(self):
         """
@@ -95,7 +95,7 @@ class ABCDPattern(ABCPattern):
 
     def __repr__(self):
         args = [f'{k}={repr(v)}' for k, v in self.to_dict().items()]
-        return f"ABCDPattern({', '.join(args)})"
+        return f"{self.__class__.__name__}({', '.join(args)})"
 
 class XABCDPattern(ABCPattern):
     def _set_completion_price(self):
@@ -142,7 +142,7 @@ class XABCDPattern(ABCPattern):
 
     def __repr__(self):
         args = [f'{k}={repr(v)}' for k, v in self.to_dict().items()]
-        return f"XABCDPattern({', '.join(args)})"
+        return f"{self.__class__.__name__}({', '.join(args)})"
 
 class Divergence:
     def __init__(
@@ -176,4 +176,4 @@ class Divergence:
 
     def __repr__(self):
         args = [f'{k}={repr(v)}' for k, v in self.to_dict().items()]
-        return f"Divergence({', '.join(args)})"
+        return f"{self.__class__.__name__}({', '.join(args)})"

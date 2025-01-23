@@ -89,7 +89,6 @@ class Position:
             status=self.status,
             outcomes=self.outcomes,
             moves=self.moves,
-            percent=self.percent,
             target_hit=self.target_hit
         )
 
@@ -98,4 +97,4 @@ class Position:
 
     def __repr__(self):
         args = [f'{k}={repr(v)}' for k, v in self.to_dict().items()]
-        return f"{self._cls }({', '.join(args)})"
+        return f"{self.__class__.__name__}({', '.join(args)})"
