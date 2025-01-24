@@ -585,7 +585,7 @@ class PositionPlotter(PlotterBase):
 
         # COLORS
         red = 'rgb(50, 0, 0)'
-        black = 'black'
+        black = 'rgb(0, 0, 0)'
         green = 'rgb(0, 50, 0)'
         fill_color = [
             [red, black] + [green for t in self.position.targets],
@@ -618,7 +618,7 @@ class PositionPlotter(PlotterBase):
             go.Table(
                 domain=dict(
                     x=[0.63, 1],
-                    y=[0.95, 1]
+                    y=[0.95, 1],
                 ),
                 header=dict(
                     values=[f'Trade Outcomes for ${self.position.dollar_amount} position'],
@@ -676,14 +676,14 @@ class PositionPlotter(PlotterBase):
     def pad_right(self, final_candle, num_candles=120):
         """
         """
-        cols = self.df.columns
+        row = {c: None for c in self.df.columns}
+
         this_time = final_candle
         data = []
+        index = []
         for i in range(num_candles):
             this_time += self.candle_gap
-            row = [this_time if c == self.df.df_index else None for c in cols]
+            index.append(this_time)
             data.append(row)
-        pad_df = pd.DataFrame(data, columns=cols)
-        pad_df[constants.INDEX] = pad_df[self.df.df_index]
-        pad_df = pad_df.set_index(pad_df[constants.INDEX])
+        pad_df = pd.DataFrame(data, columns=self.df.columns, index=index)
         self.df = pd.concat([self.df, pad_df])
