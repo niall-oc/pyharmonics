@@ -13,6 +13,7 @@ b.df = pd.read_pickle("tests/data/btc_test_data")
 t = OHLCTechnicals(b.df, b.symbol, b.interval, peak_spacing=10)
 h = HarmonicSearch(t, fib_tolerance=0.03)
 h.search()
+h.forming()
 
 def test_XABCD():
     p = HarmonicPlotter(t)
@@ -56,9 +57,19 @@ def test_single_technicals_plotter():
     p.add_harmonic_plots(sh.get_patterns(family=sh.XABCD))
     p.show()
 
-def test_position_plotter():
+def test_position_plotter_formed():
     patterns = h.get_patterns(family=h.XABCD)
     pattern = patterns[h.XABCD][0]
+    position = Position(pattern, pattern.y[-1], 1000)
+    p = PositionPlotter(t, position)
+    d = DivergenceSearch(t)
+    d.search()
+    p.add_divergence_plots(d.get_patterns())
+    p.show()
+
+def test_position_plotter_forming():
+    patterns = h.get_patterns(family=h.ABCD, formed=False)
+    pattern = patterns[h.ABCD][0]
     position = Position(pattern, pattern.y[-1], 1000)
     p = PositionPlotter(t, position)
     d = DivergenceSearch(t)
