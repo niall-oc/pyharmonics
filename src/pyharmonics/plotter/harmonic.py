@@ -564,7 +564,7 @@ class PositionPlotter(PlotterBase):
         num_targets = len(self.position.targets)
         title_col = ['Stop', 'Strike']
         price_col = [f"{self._price_render(self.position.stop)}", f"{self._price_render(self.position.strike)}"]
-        move_col = [f"{(self.position.moves['stop']-1) * 100:0.3f}%", "0.00%"]
+        move_col = [f"{(self.position.moves['stop'] - 1) * 100:0.3f}%", "0.00%"]
         position_col_base = [f"${self.position.outcomes['stop']:.2f}", f"${self.position.outcomes['position_size']:.2f}"]
         position_cols = []
         total_col = [
@@ -576,7 +576,7 @@ class PositionPlotter(PlotterBase):
             key = f't{i}'
             title_col.append(f'Target {i}')
             price_col.append(f"{self._price_render(t)}")
-            move_col.append(f"{(self.position.moves[key]-1) * 100:.3f}%")
+            move_col.append(f"{(self.position.moves[key] - 1) * 100:.3f}%")
             positions_cells = [f"${self.position.outcomes[key]:.2f}" if c >= i else f"${self.position.outcomes['stop']:.2f}" for c in range(num_targets)]
             positions_cells[i - 1] = f"${self.position.outcomes[key]:.2f}"
             position_cols.append(position_col_base + positions_cells)
@@ -611,7 +611,7 @@ class PositionPlotter(PlotterBase):
         total_col = [f"${t:.2f}" for t in total_col]
 
         data_cells = [title_col, price_col, move_col] + position_cols + [total_col]
-        headers = ['Limit', 'Price', '%Move'] + [f'Pos {i+1}' for i in range(num_targets)] + ['Returns']
+        headers = ['Limit', 'Price', '%Move'] + [f'Pos {i + 1}' for i in range(num_targets)] + ['Returns']
         widths = [20, 19, 17] + [17 for _ in position_cols] + [20]
 
         self.main_plot.add_trace(
@@ -681,9 +681,9 @@ class PositionPlotter(PlotterBase):
         data = []
         for i in range(num_candles):
             this_time += self.candle_gap
-            row = [this_time if c == self.candle_data.df_index else None for c in cols]
+            row = [this_time if c == self.df.df_index else None for c in cols]
             data.append(row)
         pad_df = pd.DataFrame(data, columns=cols)
-        pad_df[constants.INDEX] = pad_df[self.candle_data.df_index]
+        pad_df[constants.INDEX] = pad_df[self.df.df_index]
         pad_df = pad_df.set_index(pad_df[constants.INDEX])
         self.df = pd.concat([self.df, pad_df])
