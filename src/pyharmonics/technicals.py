@@ -71,6 +71,10 @@ class TechnicalsBase(abc.ABC):
 
     def __init__(self, df, indicator_config=None, sma_config=None, ema_config=None, peak_spacing=10):
         """
+        Constructor for TechnicalsBase
+
+        >>> t = TechnicalsBase(df, indicator_config, sma_config, ema_config, peak_spacing)
+
         Parameters
         ----------
         df: pandas.DataFrame
@@ -151,8 +155,8 @@ class TechnicalsBase(abc.ABC):
 
     def _set_peak_data(self):
         """
-        Sets peak spacing for this objects and finds peak data on indicators and prices.
-        Builds Fibonacci matrix based on price peak data.
+        Set the peaks and dips for the price data.
+        Set the peaks and dips for the indicators.
         """
         self._set_indicators()
         self._set_moving_avergaes()
@@ -172,16 +176,7 @@ class TechnicalsBase(abc.ABC):
 
     def _build_peaks(self):
         """
-
-        Parameters
-        ----------
-        peak_spacing : int, optional
-            Helps argelextrema find true peaks and removes noise. The default is 10.
-
-        Returns
-        -------
-        list of tuples, peak_idx, peak_price
-
+        Build the peaks and dips for the price data and the indicators.
         """
         self.df[self.MACD_PEAKS] = np.int64(utils.find_peaks(self.indicators[self.MACD].values, np.greater_equal, order=self.peak_spacing))
         self.df[self.MACD_DIPS] = np.int64(utils.find_peaks(self.indicators[self.MACD].values, np.less_equal, order=self.peak_spacing))
@@ -220,6 +215,9 @@ class TechnicalsBase(abc.ABC):
         }
 
     def _set_moving_avergaes(self):
+        """
+        Set the moving averages for the price data.
+        """
         self.smas = {}
         for ma, config in self.SMA_CONFIG.items():
             self.smas[ma] = SMAIndicator(close=self.df[constants.CLOSE], **config)
@@ -228,6 +226,10 @@ class TechnicalsBase(abc.ABC):
             self.emas[ma] = EMAIndicator(close=self.df[constants.CLOSE], **config)
 
     def _set_indicators(self):
+        """
+        Set the indicators for the price.
+        This includes MACD, RSI, StochRSI and Bollinger Bands.
+        """
         self.indicators = {
             self.MACD: MACD(close=self.df[constants.CLOSE], **self.INDICATOR_CONFIG[self.MACD]).macd_diff(),
             self.RSI: RSIIndicator(close=self.df[constants.CLOSE], **self.INDICATOR_CONFIG[self.RSI]).rsi(),
@@ -241,13 +243,18 @@ class TechnicalsBase(abc.ABC):
 
     def get_index_x(self, x):
         """
-        Resolve the index of a pattern into an actual dataframe index ( epoch or date time stam ( dts ))
+        given the index of a pattern found in this technical data,
+        return the time at those indexes.
 
         >>> t = OHLCTechnicals(df, symbol, time_frame)
         >>> t.get_index_x([1, 2, 3])
         [Timestamp('2023-04-17 08:59:59+0100', tz='Europe/Dublin'),
          Timestamp('2023-04-17 12:59:59+0100', tz='Europe/Dublin'),
          Timestamp('2023-04-17 16:59:59+0100', tz='Europe/Dublin')]
+
+        :param x: list
+            The indexes within technical_data.peak_indexes and technical_data.peak_prices that form the pattern.
+        :return: list
         """
         return list(self.df.index[x])
 
@@ -256,13 +263,12 @@ class TechnicalsBase(abc.ABC):
         Given the indexs of a pattern ( not a dataframe ) found in this technical data,
         return the time and prices at those indexes.
 
-        Parameters
-        ----------
-        pattern_indexes: list
-            The indexes within technical_data.peak_indexes and technical_data.peak_prices that form the pattern.
-
         >>> t.get_pattern_x_y([1, 2, 3])
         ([29, 42, 46], [27125.0, 28000.0, 26942.82])
+
+        :param peak_indexes: list
+            The indexes within technical_data.peak_indexes and technical_data.peak_prices that form the pattern.
+        :return: list
         """
         x = [self.peak_indexes[i] for i in peak_indexes]
         y = [self.peak_prices[i] for i in peak_indexes]
@@ -273,13 +279,14 @@ class TechnicalsBase(abc.ABC):
         Given the indexs of a pattern found in this technical data,
         return the time and indicator readings at those indexes.
 
-        Parameters
-        ----------
-        pattern_indexes: list
-            The indexes within technical_data.peak_indexes and technical_data.peak_prices that form the pattern.
-
         >>> t.get_series_x_y([100, 200, 300], t.MACD)
         ([100, 200, 300], [5.503533503855266, -11.21857793005239, -160.57022744782142])
+
+        :param series_indexes: list
+            The indexes within technical_data.peak_indexes and technical_data.peak_prices that form the pattern.
+        :param series: str
+            The series to extract the data from.
+        :return: list
         """
         y = list(self.df[series].values[series_indexes])
         return series_indexes, y
@@ -292,6 +299,10 @@ class TechnicalsBase(abc.ABC):
         [(9, 30485.0, 1), (42, 28000.0, 1), (57, 30036.0, 1), (81, 29969.39, 1), ...]
         >>> t.filter_peak_data(lows=True)
         [(29, 27125.0, 0), (46, 26942.82, 0), (89, 27666.95, 0), (131, 27262.0, 0), ...]
+
+        :param lows: bool
+            If True, return the lows, otherwise return the highs.
+        :return: list
         """
         if lows:
             # return lows - PEAK_TYPE = 0
@@ -302,7 +313,53 @@ class TechnicalsBase(abc.ABC):
 
 
 class OHLCTechnicals(TechnicalsBase):
+    """
+    An extension of TechnicalsBase for OHLC data.
+
+    >>> t = OHLCTechnicals(df, symbol, time_frame)
+    """
     def __init__(self, df, symbol, interval, indicator_config=None, sma_config=None, ema_config=None, peak_spacing=10):
+        """
+        Constructor for OHLCTechnicals.
+
+        >>> t = OHLCTechnicals(df, symbol, time_frame)
+
+        :param df: pandas.DataFrame
+            Must contain ['open', 'high', 'close', 'low', 'volume']
+        :param symbol: str
+            The symbol of the asset.
+        :param interval: str
+            The interval of the data.
+        :param indicator_config : dict
+            kw arguments for techincal indicators, stoch_rsi, rsi, mfi, cci and macd implemented
+            defaults are  {
+                Technicals.MACD: {'window_slow': 26, 'window_fast': 12, 'window_sign': 9},
+                Technicals.STOCH_RSI: {'window': 14, 'smooth_window': 3},
+                Technicals.RSI: {'window': 14},
+                Technicals.CCI: {'window': 20, 'constant': 0.015},
+                Technicals.MFI: {'window': 20}
+            }
+        :param sma_config: dict
+            kw arguments for simple moving averages.
+            defaults are {
+                self.SMA_50: {'window': 50},
+                self.SMA_100: {'window': 100},
+                self.SMA_150: {'window': 150},
+                self.SMA_200: {'window': 200}
+            }
+        :param ema_config: dict
+            kw arguments for exponential moving averages.
+            defaults are {
+                self.EMA_5: {'window': 5},
+                self.EMA_8: {'window': 8},
+                self.EMA_13: {'window': 13},
+                self.EMA_21: {'window': 21},
+                self.EMA_34: {'window': 34},
+                self.EMA_55: {'window': 55}
+            }
+        :param peak_spacing: int
+            higher number means less sensitivity to peaks.
+        """
         super(OHLCTechnicals, self).__init__(df, indicator_config=indicator_config, sma_config=sma_config, peak_spacing=peak_spacing)
         self.symbol = symbol
         self.interval = interval
@@ -315,11 +372,11 @@ class OHLCTechnicals(TechnicalsBase):
         Given the indexs of a pattern ( not a dataframe ) found in this technical data,
         return the time and prices at those indexes.
 
-        Parameters
-        ----------
-        peak_type: str
-            The series containing True or False where True marks a peak on this trend
+        >>> t.get_peak_x_y(t.PRICE_PEAKS)
 
+        :param peak_type: str
+            The series containing True or False where True marks a peak on this trend
+        :return: tuple
         """
         x = np.nonzero(self.df[peak_type].values)[0]
         if peak_type == self.PRICE_PEAKS:
@@ -335,7 +392,51 @@ class OHLCTechnicals(TechnicalsBase):
         return x, y
 
 class Technicals(TechnicalsBase):
+    """
+    An extension of TechnicalsBase for data that tracks only one trend.
+    """
     def __init__(self, df, symbol, interval, indicator_config=None, sma_config=None, ema_config=None, peak_spacing=10):
+        """
+        Constructor for Technicals.
+
+        >>> t = Technicals(df, symbol, time_frame)
+
+        :param df: pandas.DataFrame
+            Must contain ['close']
+        :param symbol: str
+            The symbol of the asset.
+        :param interval: str
+            The interval of the data.
+        :param indicator_config : dict
+            kw arguments for techincal indicators, stoch_rsi, rsi, mfi, cci and macd implemented
+            defaults are  {
+                Technicals.MACD: {'window_slow': 26, 'window_fast': 12, 'window_sign': 9},
+                Technicals.STOCH_RSI: {'window': 14, 'smooth_window': 3},
+                Technicals.RSI: {'window': 14},
+                Technicals.CCI: {'window': 20, 'constant': 0.015},
+                Technicals.MFI: {'window': 20}
+            }
+        :param sma_config: dict
+            kw arguments for simple moving averages.
+            defaults are {
+                self.SMA_50: {'window': 50},
+                self.SMA_100: {'window': 100},
+                self.SMA_150: {'window': 150},
+                self.SMA_200: {'window': 200}
+            }
+        :param ema_config: dict
+            kw arguments for exponential moving averages.
+            defaults are {
+                self.EMA_5: {'window': 5},
+                self.EMA_8: {'window': 8},
+                self.EMA_13: {'window': 13},
+                self.EMA_21: {'window': 21},
+                self.EMA_34: {'window': 34},
+                self.EMA_55: {'window': 55}
+            }
+        :param peak_spacing: int
+            higher number means less sensitivity to peaks.
+        """
         super(Technicals, self).__init__(df, indicator_config=indicator_config, sma_config=sma_config, peak_spacing=peak_spacing)
         self.symbol = symbol
         self.interval = interval
@@ -348,11 +449,11 @@ class Technicals(TechnicalsBase):
         Given the indexs of a pattern ( not a dataframe ) found in this technical data,
         return the time and prices at those indexes.
 
-        Parameters
-        ----------
-        peak_type: str
-            The series containing True or False where True marks a peak on this trend
+        >>> t.get_peak_x_y(t.PRICE_PEAKS)
 
+        :param peak_type: str
+            The series containing True or False where True marks a peak on this trend
+        :return: tuple
         """
         x = np.nonzero(self.df[peak_type].values)[0]
         if peak_type == self.PRICE_PEAKS:
