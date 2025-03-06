@@ -76,7 +76,7 @@ Plot the findings.
 ```
 
 You will see something like this.
-![This is an image](/docs/images/newplot.png)
+![This is an image](/docs/source/_static/newplot.png)
 
 See all harmonic patterns.
 ```
@@ -86,7 +86,7 @@ See all harmonic patterns.
 ```
 
 You will see something like this.
-![This is an image](/docs/images/all_patterns.png)
+![This is an image](/docs/source/_static/all_patterns.png)
 
 See all forming patterns.
 ```

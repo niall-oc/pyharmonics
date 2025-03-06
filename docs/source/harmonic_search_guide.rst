@@ -6,7 +6,7 @@ Harmonic searches are searches for ABC, ABCD or XABCD patterns.  On the final po
 
 1000 candles with n = 100 peaks would consitiute a 100*99*98*97*96 search with 9034502400 passes!!
 
-MatrixSearch is
+HarmonicSearch is
 
 .. math:: complexity = O(n^2/2 + (n-m)^2/2)
 
