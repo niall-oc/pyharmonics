@@ -5,7 +5,10 @@ import datetime
 
 class BinanceCandleData(CandleData):
     """
-    >>> m = BinanceCandleData() # 200 1 hour candles of BTCUSDT price history
+    If you want to get market data or prices for crypto currencies, you can use this class.
+    This class is a subclass of CandleData and is used to get candle data from Binance.
+
+    >>> m = BinanceCandleData() # create a new instance of BinanceCandleData
 
     >>> m.get_candles('BTCUSDT', '1h', num_candles=1000) # 1000 1 hour candles of BTCUSDT price history
 
@@ -40,14 +43,11 @@ class BinanceCandleData(CandleData):
 
     def __init__(self, schema=None, time_zone='Europe/Dublin', df_index=CandleData.DTS):
         """
-        Returns the correct epoch for binance
+        Constructor for BinanceCandleData
 
-        Parameters
-        ----------
-        schema: list [dict...]
-            A list of dictionaries containing column names and types.
-        time_zone: str
-            Used to localize time for candle data.
+        :param schema: The schema for the candle data.  If None, the default schema is used.
+        :param time_zone: The time zone to use for the data.
+        :param df_index: The index to use for the dataframe.  If None, the default index is used.
         """
         # Binance returns a list of lists. There is no schema as such and typing must be defined in line with biances API.
         # Making the schema a paramater means it can be updated using a config and no code change.
@@ -82,17 +82,10 @@ class BinanceCandleData(CandleData):
 
     def _to_dataframe(self, row_data):
         """
-        Correctly types candle dataframe and sets the time to be the index
+        Converts the raw data from the API into a pandas dataframe.
 
-        Parameters
-        ----------
-        data : list
-            lits of lists returned from binances kline API feature which supports candle data.
-
-        Returns
-        -------
-        pandas.DataFrame
-
+        :param row_data: The raw data from the API.
+        :return: The pandas dataframe
         """
         df = pd.DataFrame(data=row_data, columns=self.columns)
 
@@ -104,6 +97,16 @@ class BinanceCandleData(CandleData):
         return df[self.COLUMNS]  # Hold on to only the essentials and save memory
 
     def _datetime_to_epoch(self, t):
+        """
+        Overridden method to convert a datetime object to an epoch time.
+        Binance requires epoch time in milliseconds.
+
+        >>> m._datetime_to_epoch(datetime.datetime(2020, 3, 21, 14, 0, 15))
+        1584801615000
+
+        :param t: The datetime object to convert.
+        :return: The epoch time.
+        """
         epoch = super()._datetime_to_epoch(t)
         if isinstance(epoch, (int, float)):
             epoch = int(epoch)
@@ -112,6 +115,16 @@ class BinanceCandleData(CandleData):
         return epoch
 
     def _epoch_to_datetime(self, t):
+        """
+        Overridden method to convert an epoch time to a datetime object.
+        Binance requires epoch time in milliseconds.
+
+        >>> m._epoch_to_datetime(1584801615000)
+        datetime.datetime(2020, 3, 21, 14, 0, 15)
+
+        :param t: The epoch time to convert.
+        :return: The datetime object.
+        """
         if isinstance(t, (int, float)):
             epoch = int(t)
             if len(str(epoch)) > 10:
@@ -121,22 +134,22 @@ class BinanceCandleData(CandleData):
     def get_candles(self, symbol, interval, num_candles=None, start=None, end=None):
         """
         If start and end are defined all candles between those time ranges will be pulled
-        and stored in self.df
+        and stored in self.df.  This is done using multiple calls.
+        This is done in blocks of 1000 candles.
 
         If only start or end or both are None, then a single call is made.
+        If num_candles is greater than 1000 then multiple calls are made to get the data.
 
-        Parameters
-        ----------
-        symbol : str
-            The ticker identifier for the asset in question. eg.  'BTCUSDT' or 'META' or 'GOLD'
-        interval: str
-            eg. '1h' hour, '1m' minute, '1d' day. Use trigger.constants to avoid making mistakes here.
-        num_candles: int
-            The number of candles.  default is 200 candle intervals.
-        start: datetime.datetime
-            Specific start time for candle data.  This is internally converted into the time format required by Binance
-        end: datetime.datetime
-            Specific end time for candle data.  This is internally converted into the time format required by Binance
+        >>> m.get_candles('BTCUSDT', '1h', num_candles=1000)
+        >>> m.get_candles('BTCUSDT', '1h', num_candles=1000, end=datetime.datetime(2020, 3, 21, 14, 0, 15))
+        >>> m.get_candles('BTCUSDT', '1h', num_candles=1000, start=datetime.datetime(2020, 3, 21, 14, 0, 15))
+        >>> m.get_candles('BTCUSDT', '1h', start=datetime.datetime(2020, 3, 21, 14, 0, 15))
+
+        :param symbol: The symbol to fetch.
+        :param interval: The interval to fetch.
+        :param num_candles: The number of candles to fetch.
+        :param start: The start time for a range of candles.
+        :param end: The end time for a range of candles.
         """
         self.df = None
         row_data = []
@@ -175,18 +188,13 @@ class BinanceCandleData(CandleData):
 
     def _set_params(self, symbol, interval, num_candles=None, start=None, end=None):
         """
-        Parameters
-        ----------
-        symbol : str
-            The ticker identifier for the asset in question. eg.  'BTCUSDT' or 'META' or 'GOLD'
-        interval: str
-            eg. '1h' hour, '1m' minute, '1d' day. Use trigger.constants to avoid making mistakes here.
-        num_candles: int
-            The number of candles.  default is 200 candle intervals.
-        start: datetime.datetime
-            Specific start time for candle data.  This is internally converted into the time format required by Binance
-        end: datetime.datetime
-            Specific end time for candle data.  This is internally converted into the time format required by Binance
+        Set the parameters for the candle data. These are used to fetch the data from the source.
+
+        :param symbol: The symbol to fetch.
+        :param interval: The interval to fetch.
+        :param num_candles: The number of candles to fetch.
+        :param start: The start time for a range of candles.
+        :param end: The end time for a range of candles.
         """
         self.symbol = symbol
         self.interval = interval
@@ -196,18 +204,16 @@ class BinanceCandleData(CandleData):
 
     def _get_candle_block(self, start=None, end=None, num_candles=None):
         """
-        Requires an api endpoint to source the ticker data from.
-        API keys of any other requirement must be handled in this class.
+        Calls binance API to get a block of candle data.
 
-        Parameters
-        ----------
-        start_time : int str datetime, optional
-            Implementation specific time.
+        >>> m._get_candle_block(start=datetime.datetime(2020, 3, 21, 14, 0, 15))
+        >>> m._get_candle_block(end=datetime.datetime(2020, 3, 21, 14, 0, 15))
+        >>> m._get_candle_block(num_candles=1000)
 
-        Returns
-        -------
-        pandas.DataFrame
-
+        :param start: The start time for a range of candles.
+        :param end: The end time for a range of candles.
+        :param num_candles: The number of candles to fetch.
+        :return: The data from the API.
         """
         limit = num_candles
 

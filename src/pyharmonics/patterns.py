@@ -5,13 +5,28 @@ from pyharmonics import constants
 from hashlib import sha256
 
 class HarmonicPattern(abc.ABC):
+    """
+    A base class for all harmonic patterns.
+
+    A harmonic pattern is one from price swings that retrace to fibonacci levels.
+
+    ABCD, XABCD ( Gartley, Bat, Butterfly, Crab, Cypher, Shark, 5-0, etc. )
+    """
     @abc.abstractmethod
     def to_dict(self):
         raise NotImplementedError
 
 
 class ABCPattern(HarmonicPattern):
+    """
+    An extension of the HarmonicPattern class for ABC patterns.
 
+    ABC patterns are a subset of harmonic patterns that have a 2 swing structure.
+    A price moves in an up or down swing and retraces to a fibonacci level before
+    continuing in the original direction.
+
+    .382, .5, .618, .786, .886, 1.13, 1.141, 1.618 are common retracement levels.
+    """
     def __init__(
         self,
         symbol,
@@ -23,6 +38,20 @@ class ABCPattern(HarmonicPattern):
         formed: bool,
         bullish: bool
     ):
+        """
+        Constructor for ABCPattern.
+
+        >>> p = ABCPattern('BTCUSDT', '1h', (1, 2), (3, 4), 'Gartley', {0.382: 1, 0.618: 2}, True, True)
+
+        :param str symbol: The symbol for the pattern.
+        :param str interval: The interval for the pattern.
+        :param tuple x: The x points for the pattern.
+        :param tuple y: The y points for the pattern.
+        :param str name: The name of the pattern.
+        :param dict retraces: retraces are calculated from the y points.
+        :param bool formed: True if the pattern is formed.
+        :param bool bullish: True if the pattern is bullish.
+        """
         self.symbol = symbol
         self.interval = interval
         self.x = x
@@ -40,6 +69,9 @@ class ABCPattern(HarmonicPattern):
         self._set_hash()
 
     def to_dict(self):
+        """
+        Return a dictionary representation of the pattern.
+        """
         return dict(
             symbol=self.symbol,
             interval=self.interval,
@@ -63,22 +95,35 @@ class ABCPattern(HarmonicPattern):
 
     def _set_hash(self):
         """
-        A deterministic key for patterns.  This allows pattern generation to be idempotent
+        Set a unique pattern id for this pattern.
         """
         seed = f"{self.bullish}{self.name}{self.x[:-2]}{self.y[:-2]}{self.completion_min_price}{self.completion_max_price}"
         self.p_id = sha256(seed.encode()).hexdigest()
 
     def _set_CD_leg_extensions(self):
+        """
+        Using the ABC component of a pattern, calculate the BC leg projection and extension levels.
+        """
         C = self.y[-1]
         self.abc_extensions = [C]
         self.hop = C
 
     def _set_completion_price(self):
+        """
+        Calculates the completion price range for this pattern based off the XAB or XCD pattern completion retrace.
+        """
         C = self.y[-1]
         self.completion_min_price = C
         self.completion_max_price = C
 
 class ABCDPattern(ABCPattern):
+    """
+    An extension of the ABCPattern class for ABCD patterns.
+
+    ABCD patterns are a subset of harmonic patterns that have a 3 swing structure.
+    A price moves in an up or down swing and retraces to a fibonacci level before
+    continuing in the opposite direction.
+    """
     def _set_completion_price(self):
         """
         Calculates the completion price range for this pattern based off the XAB or XCD pattern completeion retrace.
@@ -98,6 +143,13 @@ class ABCDPattern(ABCPattern):
         return f"{self.__class__.__name__}({', '.join(args)})"
 
 class XABCDPattern(ABCPattern):
+    """
+    An extension of the ABCPattern class for XABCD patterns.
+
+    XABCD patterns are a subset of harmonic patterns that have a 4 swing structure.
+    A price moves in an up or down swing and retraces to a fibonacci level before
+    continuing in the opposite direction.
+    """
     def _set_completion_price(self):
         """
         Calculates the completion price range for this pattern based off the XAB or XCD pattern completeion retrace.
@@ -145,6 +197,12 @@ class XABCDPattern(ABCPattern):
         return f"{self.__class__.__name__}({', '.join(args)})"
 
 class Divergence:
+    """
+    A class to represent a divergence pattern in the market.
+
+    A divergence is a disagreement between the price and an indicator.
+    While the price makes a new high or low, the indicator does not.
+    """
     def __init__(
         self,
         indicator: str,
@@ -155,6 +213,19 @@ class Divergence:
         ind_y: tuple,
         bullish: bool
     ):
+        """
+        Constructor for Divergence.
+
+        >>> d = Divergence('RSI', 'Bullish', (1, 2), (3, 4), (5, 6), (7, 8), True)
+
+        :param str indicator: The indicator for the divergence.
+        :param str name: The name of the divergence.
+        :param tuple x: The x points for the price.
+        :param tuple y: The y points for the price.
+        :param tuple ind_x: The x points for the indicator.
+        :param tuple ind_y: The y points for the indicator.
+        :param bool bullish: True if the divergence is bullish
+        """
         self.indicator = indicator
         self.name = name
         self.x = x
@@ -164,6 +235,9 @@ class Divergence:
         self.bullish = bullish
 
     def to_dict(self):
+        """
+        Return a dictionary representation of the divergence.
+        """
         return dict(
             indicator=self.indicator,
             name=self.name,

@@ -6,36 +6,45 @@ from pyharmonics.patterns import ABCDPattern, ABCPattern, XABCDPattern
 
 class HarmonicSearch:
     """
-
+    HarmonicSearch is a class for searching for harmonic patterns in technical data.
     """
     XABCD = 'XABCD'
     ABCD = 'ABCD'
     ABC = 'ABC'
     PEAK = -1
 
-    def __init__(self, technicals, patterns=None, fib_tolerance=0.03, check_false_anchor=True):
+    def __init__(self, technicals, patterns=None, fib_tolerance=0.03, check_anchor=True):
         """
-        Parameters
-        ----------
-        technical_data: trigger.technicals.Technicals
-            Technical data for an asset symbol
-        fib_tolerance: float
-            The amount of tolerance that will be accepted for a fibonacci retrace.
-        patterns: dict
-            A complete set of harmonic patterns to search for,
+        Constructor for HarmonicSearch.
 
-        Returns
-        -------
-        None
+        >>> h = HarmonicSearch(technicals)
+        >>> h = HarmonicSearch(technicals, patterns=constants.MATRIX_PATTERNS, fib_tolerance=0.03, check_anchor=True)
+
+        :param pyharmonics.technicals.OHLCTechnicals technicals: An instance of OHLCTechnicals.
+        :param dict patterns: The patterns to search for.
+        :param float fib_tolerance: The tolerance for fibonacci retraces.
+        :param bool check_anchor: Check for false anchors.
+            False anchors are peaks that aren't the maximum or minimum in a trend.
         """
         self._formed = {self.XABCD: [], self.ABCD: [], self.ABC: []}
         self._forming = {self.XABCD: [], self.ABCD: [], self.ABC: []}
         self.PATTERNS = utils.get_pattern_definition(fib_tolerance, patterns or constants.MATRIX_PATTERNS)
         self.td = technicals
-        self.check_false_anchor = check_false_anchor
+        self.check_anchor = check_anchor
         self._build_fib_matrix()
 
     def get_patterns(self, family=None, formed=True):
+        """
+        Return the formed or forming patterns.
+
+        >>> h.get_patterns()
+        >>> h.get_patterns(family=h.XABCD)
+        >>> h.get_patterns(family=h.ABCD, formed=False)
+
+        :param str family: The family of patterns to return.
+        :param bool formed: True if the formed patterns are to be returned.
+        :return: The formed or forming patterns.
+        """
         group = self._formed
         if not formed:
             group = self._forming
@@ -46,11 +55,10 @@ class HarmonicSearch:
 
     def _build_fib_matrix(self):
         """
-        Consider any point as a the start of a leg.
-        Calculate all retraces off any peak.
-        If a new peak is encountered ater the current peak it becomes the new -1 peak.
-        Retrace peaks are greter than 0.0.
-        If a we hit a bottom ( max retrace ) then every pointa after that is False.
+        Builds a matrix of retraces from the peak data.
+
+        Iterate over each peak or dip in the data.
+        From that peak or dip calculate all retraces that occur going forward.
         """
         MAX = len(self.td.peak_type)
         matrix = [[None] * MAX for i in range(MAX)]
@@ -67,8 +75,7 @@ class HarmonicSearch:
 
     def _build_from_low(self, matrix, index):
         """
-        From a low point ( price low )
-        measure all retraces of the next peak price after this low.
+        From a low point ( price low ) calculate all retraces going forward.
         """
         MAX_LEN = len(self.td.peak_data)
         row = matrix[index]
@@ -102,8 +109,7 @@ class HarmonicSearch:
 
     def _build_from_high(self, matrix, index):
         """
-        From a high point ( price high )
-        measure all retraces of the next peak price after this high.
+        From a high point ( price high ) calculate all retraces going forward.
         """
         MAX = len(self.td.peak_data)
         row = matrix[index]
@@ -137,12 +143,15 @@ class HarmonicSearch:
 
     def _search_retraces(self, retrace, stage):
         """
+        Search for patterns that fit a retrace.
+
         >>> self.search_retraces(0.618, constants.ABC)
         >>> {'crab', 'gartley', 'shark', 'deep-shark'}
         Because that retrace on an ABC supports those patterns.
 
-        #TODO: ((retrace == constants.ABCD or retrace == constants.XABCD) or retrace <= retraces[constants.MAX])
-        can minimum target reached patterns be detected.
+        :param float retrace: The retrace to search for.
+        :param str stage: The stage of the pattern.
+        :return: The patterns that fit the retrace.
         """
         return set([
             pattern
@@ -152,9 +161,15 @@ class HarmonicSearch:
 
     def _search_candle(self, candle_idx, stage, filter_by=None):
         """
-        Given a candle, a point in time. Examine this candle in relation
-        to every other peak before it.  If this candle fits as part of a pattern(s)
-        then return that pattern(s)
+        Consider the current candle to be the D point at the end of a pattern.
+        Look back at the previous candles to see which start points could be the X, A, B or C points of a pattern.
+
+        >>> self._search_candle(100, constants.XCD)
+
+        :param int candle_idx: The index of the candle to search.
+        :param str stage: The stage of the pattern to search for.
+        :param set filter_by: The patterns to filter by.
+        :return: The patterns that fit the retrace.
         """
         harmonics = {}
         filter_by = filter_by or set()
@@ -187,9 +202,15 @@ class HarmonicSearch:
         return harmonics
 
     def _get_candle_retraces(self, candle_idx):
+        """
+        Extract all retraces that land on this candle.
+        """
         return [r[candle_idx] for r in self.fib_matrix if r[candle_idx] is not None]
 
     def _merge_patterns(self, patterns):
+        """
+        Merge all patterns into a single set.
+        """
         results = set()
         for p in patterns.values():
             results = results | p
@@ -197,13 +218,17 @@ class HarmonicSearch:
 
     def search(self, limit_to=-1):
         """
+        Search for harmonic patterns in the technical data.
+
         >>> h = HarmonicSearch(t)
 
         Search all peaks for patterns
         >>> h.search()
 
-        Search for patterns that complete within the most recent peaks
+        Search for patterns that complete within the most recent 3 peaks
         >>> h.search(limit_to=3)
+
+        :param int limit_to: The number of peaks to search.
         """
         self._formed = {constants.XABCD: [], constants.ABCD: [], constants.ABC: []}
         if limit_to > -1:
@@ -220,7 +245,12 @@ class HarmonicSearch:
 
     def _find_abc(self, C_idx):
         """
-        From this candles perspective. What ABC retraces occur here.
+        From this candles perspective. What ABC retraces complete here.
+
+        >>> self._find_abc(100)
+
+        :param int C_idx: The index of the candle to search.
+        :return: The patterns that fit the retrace.
         """
         found = []
         abcs = self._search_candle(C_idx, constants.SCALPS)
@@ -228,7 +258,7 @@ class HarmonicSearch:
         for pattern_indexes, patterns in abcs.items():
             A, B, C = pattern_indexes
             for p in patterns:
-                if not self._false_anchor(A, B):
+                if self._is_anchor_valid(A, B):
                     found.append(
                         self._create_abc_pattern(A, B, C, p)
                     )
@@ -239,6 +269,11 @@ class HarmonicSearch:
         Given the set of BCD retraces that complete at this candle, is the following possible
         1. Using the C point of each retrace, is there an ABC retrace that fits
         2. Does the over all ABCD fit?
+
+        >>> self._find_abcd(100)
+
+        :param int D_idx: The index of the candle to search.
+        :return: The patterns that fit the retrace.
         """
         found = []
         abcds = self._search_candle(D_idx, constants.ABCD)
@@ -259,7 +294,7 @@ class HarmonicSearch:
                     # The intersection of the ABC and BCD candidates is a valid ABCD pattern
                     patterns = abc_patterns & abcd_patterns
                     for p in patterns:
-                        if not self._false_anchor(A_idx, B_idx):
+                        if self._is_anchor_valid(A_idx, B_idx):
                             found.append(self._create_abcd_pattern(A_idx, B_idx, C_idx, D_idx, p))
         return found
 
@@ -270,6 +305,11 @@ class HarmonicSearch:
         2. Scan for XAB retraces, the first component of a pattern
         3. for every B in the BCD set, is there an XAB where the B component of both are the same.
         4. Is there an ABC retrace present and all together does this make a pattern?
+
+        >>> self._find_xabcd(100)
+
+        :param int D_idx: The index of the candle to search.
+        :return: The patterns that fit the retrace.
         """
         found = []
 
@@ -313,12 +353,22 @@ class HarmonicSearch:
                                 # Therefore the pattern common between all retraces is a harmonic
                                 patterns = xab_patterns & abc_patterns & bcd_patterns & xd_patterns
                                 for p in patterns:
-                                    if not self._false_anchor(X_idx, A_idx):
+                                    if self._is_anchor_valid(X_idx, A_idx):
                                         found.append(self._create_xabcd_pattern(X_idx, A_idx, B_idx, C_idx, D_idx, p))
         return found
 
     def forming(self, limit_to=-1, percent_c_to_d=0.8):
         """
+        Search for forming harmonic patterns in the technical data.
+        These are different from completed patterns in that they are still forming and may not complete.
+
+        >>> h = HarmonicSearch(t)
+        >>> h.forming()
+        >>> h.get_patterns(formed=False)
+
+        :param int limit_to: The number of peaks to search.
+        :param float percent_c_to_d: The percentage of the pattern that must be
+            complete from C to D.
         """
         self._forming = {constants.XABCD: [], constants.ABCD: [], constants.ABC: []}
         if limit_to > -1:
@@ -341,7 +391,7 @@ class HarmonicSearch:
                         for ap in abcd_patterns:
                             if self.fib_matrix[B_idx][D_idx] >= self.PATTERNS[constants.ABCD][ap][constants.MIN] * percent_c_to_d and \
                                self.fib_matrix[B_idx][D_idx] <= self.PATTERNS[constants.ABCD][ap][constants.MIN]:
-                                if not self._false_anchor(A_idx, B_idx):
+                                if self._is_anchor_valid(A_idx, B_idx):
                                     self._forming[constants.ABCD].append(self._create_abcd_pattern(A_idx, B_idx, C_idx, D_idx, ap, formed=False))
 
                         xabs = self._search_candle(B_idx, constants.XAB)
@@ -354,36 +404,43 @@ class HarmonicSearch:
                                 # the pattern cannot have over shot the min completion zone
                                 if self.fib_matrix[X_idx][D_idx] >= self.PATTERNS[constants.XABCD][xp][constants.MIN] * percent_c_to_d and\
                                    self.fib_matrix[X_idx][D_idx] <= self.PATTERNS[constants.XABCD][xp][constants.MIN]:
-                                    if not self._false_anchor(X_idx, A_idx):
+                                    if self._is_anchor_valid(X_idx, A_idx):
                                         self._forming[constants.XABCD].append(self._create_xabcd_pattern(X_idx, A_idx, B_idx, C_idx, D_idx, xp, formed=False))
 
-    def _false_anchor(self, anchor_idx, peak_idx, retrace_limit=constants.R_382):
+    def _is_anchor_valid(self, anchor_idx, peak_idx, retrace_limit=constants.R_382):
         """
+        Check if the anchor is a false anchor. A false anchor is a peak that is not the maximum or minimum in a trend.
+
+        >>> self._false_anchor(100, 200)
+
+        :param int anchor_idx: The index of the anchor.
+        :param int peak_idx: The index of the peak.
+        :param float retrace_limit: If a retrace greater than this limit is detected around the anchor it is valid.
+        :return: True if the anchor is a valid anchor.
         """
-        if not self.check_false_anchor:
-            return False
+        if not self.check_anchor:
+            return True
         _, start_price, start_is_high = self.td.peak_data[anchor_idx]
         _, peak_price, _ = self.td.peak_data[peak_idx]
         move = abs(peak_price - start_price)
-        retrace = False
 
         for idx in range(anchor_idx - 1, -1, -1):
             _, this_price, this_is_high = self.td.peak_data[idx]
-            if not retrace:
-                # No retrace was detected yet implying that this peak is a continuation in the trend.
-                if (start_is_high and this_price > start_price) or\
-                   (not start_is_high and this_price < start_price):
-                    # the previous peak is the true anchor and this pattern is false.
-                    return True
-                elif start_is_high != this_is_high:
-                    retrace_move = abs(start_price - this_price)
-                    if retrace_move:  # a zero here would indicate a double top.
-                        retrace = retrace_move / move
-                        if retrace >= retrace_limit:
-                            # This is a valid anchor and valid pattern
-                            return False
+            # If this point type is the opposite of the anchor point type
+            # ie. the anchor is a high and this is a low or vice versa
+            if start_is_high != this_is_high:
+                retrace_move = abs(start_price - this_price)
+                if retrace_move:  # a zero here would indicate a double top.
+                    retrace = retrace_move / move
+                    if retrace >= retrace_limit:
+                        # This is a valid anchor and valid pattern
+                        return True
+            elif (start_is_high and this_price > start_price) or\
+                 (not start_is_high and this_price < start_price):
+                # the previous peak is the true anchor and not this anchor.
+                return False
         # In the absence of a retrace this is still the lowest anchor point.
-        return False
+        return True
 
     def _create_abc_pattern(self, A_idx, B_idx, C_idx, pattern):
         """

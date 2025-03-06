@@ -48,6 +48,15 @@ class CandleData(abc.ABC):
     SOURCE = None
 
     def reset_index(self, index=None):
+        """
+        Reset the index to the default index or the index specified.
+
+        >>> bc.reset_index()
+        >>> bc.reset_index(index=BinanceCandleData.CLOSE_TIME)
+        >>> bc.reset_index(index=BinanceCandleData.DTS)
+
+        :param index: The index to reset to.  If None, the default index is used.
+        """
         if index in (self.CLOSE_TIME, self.DTS,):
             self.df_index = index
         self.df[self.INDEX] = self.df[self.df_index]
@@ -57,18 +66,13 @@ class CandleData(abc.ABC):
 
     def _set_params(self, symbol, interval, num_candles=None, start=None, end=None):
         """
-        Parameters
-        ----------
-        symbol : str
-            The ticker identifier for the asset in question. eg.  'BTCUSDT' or 'META' or 'GOLD'
-        interval: str
-            eg. '1h' hour, '1m' minute, '1d' day.
-        num_candles: int
-            The number of candles.  default is 200 candle intervals.
-        start: datetime.datetime
-            Specific start time for candle data.  This is internally converted into the time format required by Binance
-        end: datetime.datetime
-            Specific end time for candle data.  This is internally converted into the time format required by Binance
+        Set the parameters for the candle data. These are used to fetch the data from the source.
+
+        :param symbol: The symbol to fetch.
+        :param interval: The interval to fetch.
+        :param num_candles: The number of candles to fetch.
+        :param start: The start time to fetch.
+        :param end: The end time to fetch.
         """
         self.symbol = symbol
         self.interval = interval
@@ -80,7 +84,7 @@ class CandleData(abc.ABC):
     def get_candles(self):
         """
         Set paramaters and convert dates ( especially tricky with binance epoch microseconds. )
-        Implement the following
+
         num_candles      start       end         Expect
         100              None        None        100 candles (finishing at now, end is now)
         100              None        time        100 candles ( finishing at end )
@@ -90,22 +94,30 @@ class CandleData(abc.ABC):
         None             None        time        default candles ( finishing at end )
         None             time        None        default candles ( starting from start )
         None             time        time        candles from start until end ( default is ignored)
+
+        >>> bc.get_candles('BTCUSDT', BinanceCandleData.HOUR_1, num_candles=100)
+        >>> bc.get_candles('BTCUSDT', BinanceCandleData.HOUR_1, start=datetime.datetime(2021, 1, 1))
+        >>> bc.get_candles('BTCUSDT', BinanceCandleData.HOUR_1, end=datetime.datetime(2021, 1, 1))
+
+        :param symbol: The symbol to fetch.
+        :param interval: The interval to fetch.
+        :param num_candles: The number of candles to fetch.
+        :param start: The start time to fetch.
+        :param end: The end time to fetch.
         """
         raise NotImplementedError("Specific to api and cannot be general")
 
     def _datetime_to_epoch(self, t):
         """
-        time to epoch in seconds
+        datetime to epoch in seconds
 
-        Parameters
-        ----------
-        t : datetime.datetime, int, float, None
+        >>> bc._datetime_to_epoch(datetime.datetime(2021, 1, 1))
+        >>> bc._datetime_to_epoch(datetime.date(2021, 1, 1))
+        >>> bc._datetime_to_epoch(1609459200)
+        >>> bc._datetime_to_epoch(1609459200.0)
+
+        :param t: datetime.datetime, int, float, None
             represents time of specific binance candle.
-
-        Returns
-        -------
-        int
-
         """
         if t is None:
             return None
@@ -120,17 +132,15 @@ class CandleData(abc.ABC):
 
     def _epoch_to_datetime(self, t):
         """
-        epoch in seconds to time
+        epoch in seconds to time.
 
-        Parameters
-        ----------
-        t : datetime.datetime, int, float, None
+        >>> bc._epoch_to_datetime(1609459200)
+        >>> bc._epoch_to_datetime(1609459200.0)
+        >>> bc._epoch_to_datetime(datetime.datetime(2021, 1, 1))
+        >>> bc._epoch_to_datetime(datetime.date(2021, 1, 1))
+
+        :param t: datetime.datetime, int, float, None
             represents time of specific binance candle.
-
-        Returns
-        -------
-        int
-
         """
         if t is None:
             return None

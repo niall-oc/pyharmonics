@@ -9,6 +9,8 @@ class Position:
         """
         Represents a position for a trade.
 
+        >>> p = Position(pattern, strike, dollar_amount)
+
         :param pyharmonics.pattern.HarmonicPattern pattern: A subclass of HarmonicPattern representing a set of price levels.
         :param float strike: The price at which the position was entered.
         :param float dollar_amount: The size of the position in dollars.
@@ -37,6 +39,7 @@ class Position:
 
     def _set_targets(self, C):
         """
+        Calculate the target prices for the position.
         """
         t1_amount = abs(C - self.strike) / 2
         t3_amount = abs(C - self.strike) * constants.E_1618
@@ -77,6 +80,9 @@ class Position:
             self.percent = (self.outcomes['t1'] + self.outcomes['t2'] + self.outcomes['t3']) / self.dollar_amount
 
     def to_dict(self):
+        """
+        Return the position as a dictionary.
+        """
         return dict(
             symbol=self.symbol,
             pattern=self.pattern,

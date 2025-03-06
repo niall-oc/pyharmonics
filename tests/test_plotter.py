@@ -25,7 +25,7 @@ def test_XABCD():
     p.show()
 
 def test_ABCD():
-    m = HarmonicSearch(t, fib_tolerance=0.03, check_false_anchor=False)
+    m = HarmonicSearch(t, fib_tolerance=0.03, check_anchor=False)
     m.search()
     p = HarmonicPlotter(t)
     d = DivergenceSearch(t)
@@ -36,7 +36,7 @@ def test_ABCD():
     p.show()
 
 def test_ABCD_anchor():
-    m = HarmonicSearch(t, fib_tolerance=0.03, check_false_anchor=True)
+    m = HarmonicSearch(t, fib_tolerance=0.03, check_anchor=True)
     m.search()
     p = HarmonicPlotter(t)
     d = DivergenceSearch(t)

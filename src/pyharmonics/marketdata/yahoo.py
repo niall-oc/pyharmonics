@@ -5,8 +5,19 @@ import yfinance as yf
 import pandas as pd
 
 class YahooOptionChain:
+    """
+    YahooOptionChain is a class for analyzing options data from Yahoo Finance.
+
+    >>> y = YahooOptionChain(option_chain)
+    >>> y = YahooOptionChain(option_chain, top=30, trend='openInterest')
+    """
     def __init__(self, option_chain, top=30, trend='openInterest'):
         """
+        Constructor for YahooOptionChain
+
+        >>> y = YahooOptionChain(option_chain)
+        >>> y = YahooOptionChain(option_chain, top=30, trend='openInterest')
+
         :param yfinance.Ticker ticker: the yfinance Ticker object representing an asset.
         :params int top: the top 30 options, ranked by openInterest, are analyzed by default.
         """
@@ -38,7 +49,19 @@ class YahooOptionChain:
 
 
 class YahooOptionData:
+    """
+    YahooOptionData is a class for analyzing options data from Yahoo Finance.
+
+    >>> y = YahooOptionData('AAPL')
+    >>> y = YahooOptionData('AAPL').analyse_options(top=30, trend='volume')
+    >>> y = YahooOptionData('AAPL').analyse_options(top=30, trend='openInterest')
+    """
     def __init__(self, symbol):
+        """
+        Constructor for YahooOptionData
+
+        >>> y = YahooOptionData('AAPL')
+        """
         self.symbol = symbol
         self.ticker = yf.Ticker(self.symbol)
         self.options = {}
@@ -46,14 +69,21 @@ class YahooOptionData:
 
     def analyse_options(self, top=30, trend='openInterest'):
         """
+        Analyze the options data for the given asset.
+
+        >>> y = YahooOptionData('AAPL').analyse_options(top=30, trend='volume')
+        >>> y = YahooOptionData('AAPL').analyse_options(top=30, trend='openInterest')
+
         :params int top: the top 30 options, ranked by openInterest, are analyzed by default.
-        df = df.merge(right=fun.options[fun.ticker.options[4]].calls[['strike', 'openInterest']], on='strike', how='left', suffixes=['4', f'_{fun.ticker.options[4]}'])
         """
         for expiry in self.ticker.options:
             self.options[expiry] = YahooOptionChain(self.ticker.option_chain(expiry), top=top, trend=trend)
 
 class YahooCandleData(CandleData):
     """
+    YahooCandleData is a class for fetching candle data from Yahoo Finance.
+    It is a subclass of CandleData and inherits all of its methods and attributes.
+
     >>> m = YahooCandleData() # 200 1 hour candles of BTCUSDT price history
 
     >>> m.get_candles('MSFT', '1h', num_candles=1000) # 1000 1 hour candles of BTCUSDT price history
@@ -96,15 +126,15 @@ class YahooCandleData(CandleData):
 
     def __init__(self, schema=None, time_zone='Europe/Dublin', df_index=CandleData.DTS):
         """
-        >>> y = Yahoo()
-        >>> y.get_candles('MSFT', '1d')
+        Constructor for YahooCandleData
 
-        Parameters
-        ----------
-        schema: list [dict...]
-            A list of dictionaries containing column names and types.
-        time_zone: str
-            Used to localize time for candle data
+        >>> y = YahooCandleData()
+        >>> y = YahooCandleData(schema=[{"name": "open_time", "type": "int64"}, {"name": "open", "type": "float"}])
+        >>> y = YahooCandleData(time_zone='Europe/Dublin')
+
+        :param schema: The schema for the candle data.  If None, the default schema is used.
+        :param time_zone: The time zone to use for the data.
+        :param df_index: The index to use for the dataframe.  If None, the default index is used.
         """
         # Binance returns a list of lists. There is no schema as such and typing must be defined in line with biances API.
         # Making the schema a paramater means it can be updated using a config and no code change.
@@ -130,21 +160,16 @@ class YahooCandleData(CandleData):
 
     def get_candles(self, symbol, interval, num_candles=None, start=None, end=None):
         """
+        Get the candle data from Yahoo Finance for the given asset and interval.
+
         >>> y = Yahoo()
         >>> y.get_candles('MSFT', '1d')
 
-        Parameters
-        ----------
-        asset_symbol : str
-            The ticker identifier for the asset in question. eg.  'BTCUSDT' or 'META' or 'GOLD'
-        interval: str
-            eg. '1h' hour, '1m' minute, '1d' day. Use trigger.constants to avoid making mistakes here.
-        num_candles: int
-            The number of candles.  default is 200 candle intervals.
-        start: datetime.datetime
-            Specific start time for candle data.  This is internally converted into the time format required by Yahoo
-        end: datetime.datetime
-            Specific end time for candle data.  This is internally converted into the time format required by Yahoo
+        :param symbol: The symbol to fetch.
+        :param interval: The interval to fetch.
+        :param num_candles: The number of candles to fetch.
+        :param start: The start time for a range of candles.
+        :param end: The end time for a range of candles.
         """
         self.df = None
         self._set_params(symbol, interval, num_candles=num_candles, start=start, end=end)
@@ -165,6 +190,10 @@ class YahooCandleData(CandleData):
         self.reset_index()
 
     def _trim_data(self):
+        """
+        Trim the data to the number of candles requested.
+        Sometimes the result will be greater than the number of candles requested.
+        """
         if self.start and self.end:
             pass
         elif self.start and not self.end:

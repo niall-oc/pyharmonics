@@ -14,7 +14,24 @@ import datetime
 import abc
 
 class PlotterBase(abc.ABC):
+    """
+    Base class for plotting harmonic patterns and divergences.
+    """
     def __init__(self, technicals: OHLCTechnicals, title=None, time_horizon=None, row_map=None, colors=None, plot_ema=False, plot_sma=True, ignore_weekend=False):
+        """
+        Constructor for PlotterBase
+
+        >>> p = PlotterBase(technicals, title='BTCUSDT', time_horizon='1h', row_map=None, colors=None, plot_ema=False, plot_sma=True, ignore_weekend=False)
+
+        :param technicals: The technicals object to plot.
+        :param title: The title of the plot.
+        :param time_horizon: The time horizon of the data.
+        :param row_map: The row map for the plot.
+        :param colors: The colors for the plot.
+        :param plot_ema: Plot the EMA.
+        :param plot_sma: Plot the SMA.
+        :param ignore_weekend: Ignore the weekend ( occurs on stocks and not crypto ).
+        """
         self.technicals = technicals
         self.title = title or 'chart'
         self.time_horizon = time_horizon
@@ -71,6 +88,11 @@ class PlotterBase(abc.ABC):
         self.candle_gap = datetime.timedelta(**kwargs)
 
     def _set_precision(self, p):
+        """
+        Set the precision for the price data.
+
+        :param p: The price data.
+        """
         self.int_precision, self.float_precision = tuple(len(c) for c in str(p).split('.'))
         digits = str(p).replace('-', '').replace('.', '')
         self.lead_zero_count = 0
@@ -80,6 +102,9 @@ class PlotterBase(abc.ABC):
             self.lead_zero_count += 1
 
     def _price_render(self, p, currency='$'):
+        """
+        Render the price data with currency character.
+        """
         if self.int_precision > 2:
             return f"{currency}{p:.2f}"
         elif self.lead_zero_count > 2:
@@ -88,10 +113,20 @@ class PlotterBase(abc.ABC):
             return f"{currency}{p:.4f}"
 
     def _percent_render(self, p):
+        """
+        Render the percentage data.
+        """
         return f"{p:.2f}%"
 
     def add_harmonic_plots(self, pattern_data):
         """
+        Add harmonic patterns to the plot.
+
+        >>> hs = HarminicSearch(techanicals)
+        >>> hs.search()
+        >>> p.add_harmonic_plots(hs.get_patterns())
+
+        :param pattern_data: The harmonic pattern data.
         """
         for family, patterns in pattern_data.items():
             for p in patterns:
@@ -99,7 +134,12 @@ class PlotterBase(abc.ABC):
 
     def add_harmonic_pattern(self, p):
         """
-        Publish trigger.db.HarmonicPattern objects to plots.
+        Add a single harmonic pattern to the plot.
+        THis provides compatability with the HarmonicSearch object.
+
+        >>> hs = HarminicSearch(techanicals)
+        >>> hs.search()
+        >>> p.add_harmonic_plots(hs.get_patterns()[hs.XABCD][0])
         """
         self._set_precision(p.completion_min_price)
         prices = p.y
@@ -117,9 +157,8 @@ class PlotterBase(abc.ABC):
         """
         Add a 5 point pattern to a graph. Will appear like 2 triangles in an M or W whape.
 
-         Parameters
-        ----------
-        p: HarmonicPattern child
+        :param p: The pattern to add.
+        :param prices: The prices for the pattern.
         """
         # 5 point m or w formations
         text = [
@@ -161,6 +200,15 @@ class PlotterBase(abc.ABC):
         )
 
     def add_divergence_plots(self, divergences):
+        """
+        Add divergence patterns to the plot.
+
+        >>> d = DivergenceSearch(technicals)
+        >>> d.search()
+        >>> p.add_divergence_plots(d.get_patterns())
+
+        :param divergences: The divergence patterns to add.
+        """
         for indicator, patterns in divergences.items():
             for p in patterns:
                 color = 'lightgreen' if p.bullish else '#ff7766'
@@ -183,6 +231,10 @@ class PlotterBase(abc.ABC):
 
     def _add_abcd_pattern(self, p, prices):
         """
+        Add a 4 point pattern to a graph. Will appear as a zigzag line.
+
+        :param p: The pattern to add.
+        :param prices: The prices for the pattern.
         """
         text = ["A", f"B - {p.name}", f"C - {p.retraces[constants.ABC]:0.3f}", f"D - {p.retraces[constants.BCD]:0.3f}"]
         line = dict(color=self.colors[p.bullish][p.formed]['line'], width=3)
@@ -199,6 +251,10 @@ class PlotterBase(abc.ABC):
 
     def _add_abc_pattern(self, p, prices):
         """
+        Add a 3 point pattern to a graph. Will appear as a zigzag line.
+
+        :param p: The pattern to add.
+        :param prices: The prices for the pattern.
         """
         text = ['', '', f"{'long' if p.bullish else 'short'} {p.name}"]
         line = dict(color=self.colors[p.bullish][p.formed]['line'], width=2, dash='dash')
@@ -214,6 +270,9 @@ class PlotterBase(abc.ABC):
         )
 
     def add_peaks(self):
+        """
+        Add peaks to the plot. Will place dots on each peak detected.
+        """
         self.main_plot.add_trace(
             go.Scatter(
                 mode="markers",
@@ -262,6 +321,7 @@ class PlotterBase(abc.ABC):
 
     def add_volume_plot(self):
         """
+        Add the volume plot to the main plot.
         """
         row = self.ROW_MAP[constants.VOLUME]['row']
         col = self.ROW_MAP[constants.VOLUME]['col']
@@ -280,6 +340,9 @@ class PlotterBase(abc.ABC):
         self.main_plot.update_yaxes(title_text=constants.VOLUME, row=row, col=col)
 
     def add_macd_plot(self):
+        """
+        Add the MACD plot to the main plot.
+        """
         # Plot MACD trace on 3rd row
         row = self.ROW_MAP[self.technicals.MACD]['row']
         col = self.ROW_MAP[self.technicals.MACD]['col']
@@ -307,6 +370,9 @@ class PlotterBase(abc.ABC):
         self.main_plot.update_yaxes(title_text=self.technicals.MACD, showgrid=False, row=row, col=1)
 
     def add_indicator_plot(self, ind):
+        """
+        Add an indicator plot to the main plot.
+        """
         row = self.ROW_MAP[ind]['row']
         col = self.ROW_MAP[ind]['col']
         # Plot bullish div
@@ -328,6 +394,10 @@ class PlotterBase(abc.ABC):
         self.main_plot.update_yaxes(title_text=ind, row=row, col=col)
 
     def remove_date_gaps(self):
+        """
+        Remove blank space for weekends or holidays.
+        This makes a plot more readable.
+        """
         self.main_plot.update_xaxes(rangebreaks=[
             dict(bounds=['sat', 'mon']),
             dict(bounds=[21, 14.5], pattern='hour'),
@@ -335,6 +405,9 @@ class PlotterBase(abc.ABC):
         ])
 
     def _create_main_plot(self):
+        """
+        Create the main plot.
+        """
         if isinstance(self.technicals, OHLCTechnicals):
             self.main_plot.add_trace(
                 go.Candlestick(
@@ -356,6 +429,9 @@ class PlotterBase(abc.ABC):
             )
 
     def set_main_plot(self):
+        """
+        Set the main plot.
+        """
         self._create_main_plot()
         if self.plot_ema:
             self.main_plot.add_trace(go.Scatter(x=self.date_series, y=self.df[self.technicals.EMA_5], line=dict(color='rgba(64, 64, 255, 1)', width=1)))
@@ -385,9 +461,18 @@ class PlotterBase(abc.ABC):
         )
 
     def show(self):
+        """
+        Show the plot.
+        """
         self.main_plot.show()
 
     def save_plot_image(self, location, dpi=600):
+        """
+        Save the plot to an image. Useful for people wanting to publish trends.
+
+        :param location: The location to save the image.
+        :param dpi: The dots per inch for the image.
+        """
         if self.ignore_weekend:
             self.main_plot.update_xaxes(
                 rangebreaks=[
@@ -398,11 +483,31 @@ class PlotterBase(abc.ABC):
         pio.write_image(self.main_plot, f"{location}", width=4 * dpi, height=2 * dpi, scale=1)
 
     def to_image(self, dpi=600):
+        """
+        Return the plot as an image. Useful for HTTP API calls. Useful for integration with AI.
+
+        :param dpi: The dots per inch for the image.
+        """
         return pio.to_image(self.main_plot, width=4 * dpi, height=2 * dpi, scale=1)
 
 
 class HarmonicPlotter(PlotterBase):
+    """
+    An extension of the PlotterBase class for plotting harmonic patterns.
+    """
     def __init__(self, technicals: OHLCTechnicals, row_map=None, colors=None, plot_ema=False, plot_sma=True):
+        """
+        Constructor for HarmonicPlotter.
+
+        >>> p = HarmonicPlotter(technicals, row_map=None, colors=None, plot_ema=False, plot_sma=True)
+        >>> p = HarmonicPlotter(technicals)
+
+        :param technicals: The technicals object to plot.
+        :param row_map: The row map for the plot.
+        :param colors: The colors for the plot.
+        :param plot_ema: Plot the EMA.
+        :param plot_sma: Plot the SMA.
+        """
         super(HarmonicPlotter, self).__init__(technicals, title=technicals.symbol, time_horizon=technicals.interval,
                                               row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
         self.plot_title = f"{self.title} {self.time_horizon}"
@@ -424,6 +529,10 @@ class HarmonicPlotter(PlotterBase):
                 self.add_indicator_plot(ind)
 
     def set_sub_plots(self):
+        """
+        Set the sub plots for the main plot.
+        The measurements for subplots are optimized purely for pyharmonics.
+        """
         space = 1 - (self.ROW_MAP['main']['weight'] + self.ROW_MAP[constants.VOLUME]['weight'])
         indicator_height = space / len(self.technicals.indicators)
         heights = [self.ROW_MAP['main']['weight'], self.ROW_MAP[constants.VOLUME]['weight']] + [indicator_height for _ in self.technicals.indicators]
@@ -434,7 +543,22 @@ class HarmonicPlotter(PlotterBase):
         )
 
 class Plotter(PlotterBase):
+    """
+    An extension of the PlotterBase class for plotting other trends.
+    """
     def __init__(self, technicals: OHLCTechnicals, row_map=None, colors=None, plot_ema=False, plot_sma=True):
+        """
+        Constructor for Plotter.
+
+        >>> p = Plotter(technicals, row_map=None, colors=None, plot_ema=False, plot_sma=True)
+        >>> p = Plotter(technicals)
+
+        :param technicals: The technicals object to plot.
+        :param row_map: The row map for the plot.
+        :param colors: The colors for the plot.
+        :param plot_ema: Plot the EMA.
+        :param plot_sma: Plot the SMA.
+        """
         super(Plotter, self).__init__(technicals, title=technicals.symbol, time_horizon=technicals.interval, row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
         self.plot_title = f"{self.title} {self.time_horizon}"
         self.fonts = dict(
@@ -461,6 +585,10 @@ class Plotter(PlotterBase):
                 self.add_indicator_plot(ind)
 
     def set_sub_plots(self):
+        """
+        Set the sub plots for the main plot.
+        The measurements for subplots are optimized purely for general trends.
+        """
         space = 1 - (self.ROW_MAP['main']['weight'])
         indicator_height = space / len(self.technicals.indicators)
         heights = [self.ROW_MAP['main']['weight']] + [indicator_height for _ in self.technicals.indicators]
@@ -472,7 +600,26 @@ class Plotter(PlotterBase):
 
 
 class PositionPlotter(PlotterBase):
+    """
+    An extension of the PlotterBase class for plotting positions.
+    Position plotting is more complex than harmonic plotting.
+    Position plotting requires plotting the position outcomes.
+    Position plotting requires plotting the position targets.
+    """
     def __init__(self, technicals, position, row_map=None, colors=None, plot_ema=False, plot_sma=True):
+        """
+        Constructor for PositionPlotter.
+
+        >>> p = PositionPlotter(technicals, position, row_map=None, colors=None, plot_ema=False, plot_sma=True)
+        >>> p = PositionPlotter(technicals, position)
+
+        :param technicals: The technicals object to plot.
+        :param position: The position to plot.
+        :param row_map: The row map for the plot.
+        :param colors: The colors for the plot.
+        :param plot_ema: Plot the EMA.
+        :param plot_sma: Plot the SMA.
+        """
         super(PositionPlotter, self).__init__(technicals, title=position.symbol, time_horizon=position.pattern.interval,
                                               row_map=row_map, colors=colors, plot_ema=plot_ema, plot_sma=plot_sma)
         self.plot_title = f"{self.title} {self.time_horizon} - price: {technicals.spot:.4f}"
@@ -496,6 +643,10 @@ class PositionPlotter(PlotterBase):
         self._set_position()
 
     def set_sub_plots(self):
+        """
+        Set the sub plots for the main plot.
+        The measurements for subplots are optimized for trading positions.
+        """
         space = 1 - (self.ROW_MAP['main']['weight'] + self.ROW_MAP[constants.VOLUME]['weight'])
         indicator_height = space / len(self.technicals.indicators)
         heights = [self.ROW_MAP['main']['weight'], self.ROW_MAP[constants.VOLUME]['weight']] + [indicator_height for _ in self.technicals.indicators]
@@ -507,6 +658,14 @@ class PositionPlotter(PlotterBase):
         )
 
     def _add_pattern_completion_zone(self, candle_width, chart_end_time):
+        """
+        Add the pattern completion zone to the plot.
+
+        >>> p._add_pattern_completion_zone(0.5, 1000)
+
+        :param candle_width: The width of the candle.
+        :param chart_end_time: The end time of the chart.
+        """
         # Add target completion zone
         self.main_plot.add_trace(
             go.Scatter(
@@ -527,6 +686,14 @@ class PositionPlotter(PlotterBase):
         )
 
     def _add_price_target_blocks(self, target_block_width, chart_end_time):
+        """
+        Add the price target blocks to the plot.
+
+        >>> p._add_price_target_blocks(0.5, datetime.datetime.now())
+
+        :param target_block_width: The width of the target block.
+        :param chart_end_time: The end time of the chart.
+        """
         target_candle = chart_end_time + target_block_width
         is_stop = not self.position.pattern.bullish
         i = 1
@@ -560,6 +727,11 @@ class PositionPlotter(PlotterBase):
 
     def _add_position_outcomes(self):
         """
+        Add the position outcomes to the plot.
+        This is a table/matrix of the return on investment for the position.
+        It shows the stop, strike, and target outcomes.
+
+        >>> p._add_position_outcomes()
         """
         num_targets = len(self.position.targets)
         title_col = ['Stop', 'Strike']
@@ -655,6 +827,7 @@ class PositionPlotter(PlotterBase):
 
     def _set_position(self, shape_width=0.1):
         """
+        Set the position on the plot.
         """
         self._set_precision(self.position.strike)
         # Add padding for target
@@ -675,6 +848,8 @@ class PositionPlotter(PlotterBase):
 
     def pad_right(self, final_candle, num_candles=120):
         """
+        Pad the right side of the plot with empty candles.
+        This is useful for plotting the future.
         """
         row = {c: None for c in self.df.columns}
 
