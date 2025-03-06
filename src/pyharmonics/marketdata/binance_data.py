@@ -98,7 +98,7 @@ class BinanceCandleData(CandleData):
 
     def _datetime_to_epoch(self, t):
         """
-        Overloaded method to convert a datetime object to an epoch time.
+        Overridden method to convert a datetime object to an epoch time.
         Binance requires epoch time in milliseconds.
 
         >>> m._datetime_to_epoch(datetime.datetime(2020, 3, 21, 14, 0, 15))
@@ -116,7 +116,7 @@ class BinanceCandleData(CandleData):
 
     def _epoch_to_datetime(self, t):
         """
-        Overloaded method to convert an epoch time to a datetime object.
+        Overridden method to convert an epoch time to a datetime object.
         Binance requires epoch time in milliseconds.
 
         >>> m._epoch_to_datetime(1584801615000)
@@ -137,7 +137,7 @@ class BinanceCandleData(CandleData):
         and stored in self.df.  This is done using multiple calls.
         This is done in blocks of 1000 candles.
 
-        If only start or end or both are None, then a single call is made. 
+        If only start or end or both are None, then a single call is made.
         If num_candles is greater than 1000 then multiple calls are made to get the data.
 
         >>> m.get_candles('BTCUSDT', '1h', num_candles=1000)
