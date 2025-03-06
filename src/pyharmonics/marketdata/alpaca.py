@@ -8,6 +8,9 @@ import datetime
 
 class AlpacaCandleData(CandleData):
     """
+    If you want to get market data or prices for crypto currencies, you can use this class.
+    This class is a subclass of CandleData and is used to get candle data from Alpaca.
+
     >>> m = BinanceCandleData() # 200 1 hour candles of BTCUSDT price history
 
     >>> m.get_candles('BTCUSDT', '1h', num_candles=1000) # 1000 1 hour candles of BTCUSDT price history
@@ -57,14 +60,15 @@ class AlpacaCandleData(CandleData):
 
     def __init__(self, key, schema=None, time_zone='Europe/Dublin', df_index=CandleData.DTS):
         """
-        Returns the correct epoch for binance
+        Constructor for AlpacaCandleData
 
-        Parameters
-        ----------
-        schema: list [dict...]
-            A list of dictionaries containing column names and types.
-        time_zone: str
-            Used to localize time for candle data.
+        >>> a = AlpacaCandleData()
+        >>> a = AlpacaCandleData(schema=[{"name": "open_time", "type": "int64"}, {"name": "open", "type": "float"}])
+        >>> a = AlpacaCandleData(time_zone='Europe/Dublin')
+
+        :param list schema: The schema for the candle data.  If None, the default schema is used.
+        :param str time_zone: The time zone to use for the data.
+        :param str df_index: The index to use for the dataframe.  If None, the default index is used.
         """
         # Binance returns a list of lists. There is no schema as such and typing must be defined in line with biances API.
         # Making the schema a paramater means it can be updated using a config and no code change.
@@ -94,17 +98,13 @@ class AlpacaCandleData(CandleData):
 
     def _datetime_to_epoch(self, t):
         """
-        Returns the correct epoch for binance
+        Overridden method to convert datetime to epoch
 
-        Parameters
-        ----------
-        t : datetime.datetime, int, float, None
-            represents time of specific binance candle.
+        >>> a._datetime_to_epoch(datetime.datetime(2020, 3, 21, 14, 0, 15))
+        1584792015
 
-        Returns
-        -------
-        int
-
+        :param t: datetime.datetime
+        :return: int
         """
         if t is None:
             return None
@@ -119,17 +119,12 @@ class AlpacaCandleData(CandleData):
 
     def _to_dataframe(self, data):
         """
-        Correctly types candle dataframe and sets the time to be the index
+        Converts the raw data from the API into a pandas dataframe.
 
-        Parameters
-        ----------
-        data : list
-            lits of lists returned from binances kline API feature which supports candle data.
+        >>> a._to_dataframe(data)
 
-        Returns
-        -------
-        pandas.DataFrame
-
+        :param data: The raw data from the API.
+        :return: The pandas dataframe
         """
         df = pd.DataFrame(data=data, columns=self.columns)
 
@@ -143,22 +138,21 @@ class AlpacaCandleData(CandleData):
     def get_candles(self, symbol: str, interval: TimeFrame, num_candles=None, start=None, end=None):
         """
         If start and end are defined all candles between those time ranges will be pulled
-        and stored in self.df
+        and stored in self.df.  This is done using multiple calls.
+        This is done in blocks of 1000 candles.
 
         If only start or end or both are None, then a single call is made.
+        If num_candles is greater than 1000 then multiple calls are made to get the data.
 
-        Parameters
-        ----------
-        symbol : str
-            The ticker identifier for the asset in question. eg.  'BTCUSDT' or 'META' or 'GOLD'
-        Interval: Timeframe
-            eg. '1h' hour, '1m' minute, '1d' day. Use trigger.constants to avoid making mistakes here.
-        num_candles: int
-            The number of candles.  default is 200 candle intervals.
-        start: datetime.datetime
-            Specific start time for candle data.  This is internally converted into the time format required by Binance
-        end: datetime.datetime
-            Specific end time for candle data.  This is internally converted into the time format required by Binance
+        >>> a.get_candles('BTCUSDT', TimeFrame(1, TimeFrameUnit.Hour), num_candles=1000)
+        >>> a.get_candles('BTCUSDT', TimeFrame(1, TimeFrameUnit.Hour), start=datetime.datetime(2020, 3, 21, 14, 0, 15))
+        >>> a.get_candles('BTCUSDT', TimeFrame(1, TimeFrameUnit.Hour), end=datetime.datetime(2020, 3, 21, 14, 0, 15))
+
+        :param symbol: The symbol to fetch.
+        :param interval: The interval to fetch.
+        :param num_candles: The number of candles to fetch.
+        :param start: The start time for a range of candles.
+        :param end: The end time for a range of candles.
         """
         # If no end time then now - 1000 time frames
         self._set_params(symbol, interval, num_candles, start, end)

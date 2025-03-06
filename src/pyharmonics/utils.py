@@ -36,14 +36,17 @@ UER = pd.read_csv(
 
 def get_pattern_retraces(prices: list) -> dict:
     """
-    Parameters
-    ----------
-    classification: string
-        Defined in trigger.constants can be 'XABCD', 'ABCD', 'ABC'
-    prices : list
-        Prices of pattern.
-    ----------
-    returns dict
+    Calculate the retraces for the given pattern.
+
+    >>> utils.get_pattern_retraces([1.0, 2.0, 3.0])
+    {'ABC': 1.0}
+    >>> utils.get_pattern_retraces([1.0, 2.0, 3.0, 4.0])
+    {'ABC': 1.0, 'BCD': 1.0, 'ABCD': 1.0}
+    >>> utils.get_pattern_retraces([1.0, 2.0, 3.0, 4.0, 5.0])
+    {'XAB': 1.0, 'ABC': 1.0, 'BCD': 1.0, 'XABCD': 1.0}
+
+    :param prices: The prices of the pattern.
+    :return: The retraces for the pattern.
     """
     points = len(prices)
     if points == 3:  # ABC
@@ -86,13 +89,16 @@ def get_pattern_direction(prices: list) -> str:
     All patterns forming a final retrace where the price is moving down are
     indicating a reversal to the upside is iminent.  This is bullish.
 
-    The opposite final retrace where the price is moving up is bearish.
-    Parameters
-    ----------
-    prices : list
-        Prices of pattern.
-    ----------
-    returns str
+    All patterns forming a final retrace where the price is moving up are
+    indicating a reversal to the downside is iminent.  This is bearish.
+
+    >>> utils.get_pattern_direction([1.0, 2.0, 3.0])
+    'bullish'
+    >>> utils.get_pattern_direction([3.0, 2.0, 1.0])
+    'bearish'
+
+    :param prices: The prices of the pattern.
+    :return: The direction of the pattern
     """
     if prices[-1] < prices[-2]:
         return constants.BULLISH
@@ -102,15 +108,19 @@ def get_pattern_direction(prices: list) -> str:
 
 def is_pattern_formed(name: str, retrace: float, patterns: dict) -> bool:
     """
-    Do the pattern retraces reach the required levels to be deemed formed?
+    Do the pattern retraces reach the required levels for the pattern to be formed?
 
-    Parameters
-    ----------
-    retraces: dict
-        key is defined in trigger.constants, value is the retrace value for that retrace.  This was already
-        calculated in the search object and is safe to pass to the Events object.
-    ----------
-    returns bool
+    >>> utils.is_pattern_formed('ABCD', 0.618, {'ABCD': {'ABCD': {'min': 0.618, 'max': 0.786}}})
+    True
+    >>> utils.is_pattern_formed('ABCD', 0.786, {'ABCD': {'ABCD': {'min': 0.618, 'max': 0.786}}})
+    True
+    >>> utils.is_pattern_formed('ABCD', 0.5, {'ABCD': {'ABCD': {'min': 0.618, 'max': 0.786}}})
+    False
+
+    :params name: The name of the pattern.
+    :params retrace: The retrace of the pattern.
+    :params patterns: The patterns to check against.
+    :return: True if the pattern is formed, False otherwise
     """
     if name in constants.ABCDS:
         return retrace >= patterns[constants.ABCD][name][constants.MIN]
@@ -123,14 +133,14 @@ def is_pattern_formed(name: str, retrace: float, patterns: dict) -> bool:
 
 def get_pattern_definition(tolerance: float, patterns: dict) -> dict:
     """
-    Harmonic pattern definitions must have their min and max thresholds widened by a percentage
+    No pattern forms exactly.  There is always some tolerance in the pattern
+    formation.  This function adjusts the pattern retraces to account for this.
 
-    Parameters
-    ----------
-    tolerance: float
-        0.03 is 3 percent tolerance
-    ----------
-    returns copy of adjusted patterns
+    >>> utils.get_pattern_definition(0.05, {'ABCD': {'ABCD': {'min': 0.618, 'max': 0.786}}})
+    {'ABCD': {'ABCD': {'min': 0.5871, 'max': 0.8259}}}
+
+    :param tolerance: The tolerance to apply to the pattern retraces.
+    :param patterns: The patterns to adjust.
     """
     harmonic_patterns = deepcopy(patterns)
     # set pattern fib_tolerance
@@ -143,19 +153,24 @@ def get_pattern_definition(tolerance: float, patterns: dict) -> dict:
 
 def get_candle_span(candle_time, candle_gap: int, num_gaps: int) -> list:
     """
-    Generates a list of time indexes that span a specific time.
-    Useful for finding peaks on indicators that are near peaks on oscilators
+    Get the span of candles around the given candle time.
 
     >>> utils.get_candle_span(10, 1, 3)
     [7, 8, 9, 10, 11, 12, 13]
     >>> utils.get_candle_span(100, 10, 3)
     [70, 80, 90, 100, 110, 120, 130]
+
+    :param candle_time: The time index to span.
+    :param candle_gap: The gap between candles.
+    :param num_gaps: The number of gaps to span.
+    :return: The list of time indexes
     """
     return list(range(candle_time - (candle_gap * num_gaps), candle_time + (candle_gap * num_gaps) + candle_gap, candle_gap))
 
 
 def match_peaks(indicator_peaks: list, price_peaks: list, index_span: int) -> list:
     """
+    Match the indicator peaks to the price peaks.
 
     >>> indicator_peaks = [45, 62, 99, 134, 157, 176, 211, 243, 258, 296, 311, 333, 348, 391, 422, 447, 474,
                             524, 540, 581, 617, 635, 647, 664, 719, 737, 766, 786, 817, 862, 910, 932, 970, 998]
@@ -166,6 +181,11 @@ def match_peaks(indicator_peaks: list, price_peaks: list, index_span: int) -> li
     >>> utils.match_peaks(indicator_peaks, price_peaks, 3)
     [(45, 45), (99, 98), (134, 134), (157, 156), (243, 243), (258, 258), (296, 296), (311, 310), (391, 391), (422, 423),
      (581, 580), (635, 635), (647, 647), (664, 664), (737, 737), (766, 766), (786, 784), (817, 817), (862, 862), (970, 970), (998, 997)]
+
+    :param indicator_peaks: The indicator peaks.
+    :param price_peaks: The price peaks.
+    :param index_span: The span to match the peaks.
+    :return: The matched peaks.
     """
     # Setup while loop indexes and limits
     matches = []
@@ -182,54 +202,21 @@ def match_peaks(indicator_peaks: list, price_peaks: list, index_span: int) -> li
             pri_i += 1
     return matches
 
-
-def set_completion_price(pattern):
-    """
-    Given a pattern, calculate the completion price range
-    """
-    X = pattern.y[0]
-    A = pattern.y[1]
-    C = pattern.y[3]
-    peak_price = C if C > A else A
-    completion_retraces = constants.MATRIX_PATTERNS[pattern.classification][pattern.name]
-    if pattern.bullish:
-        completion_min_price = peak_price - ((peak_price - X) * completion_retraces[constants.MIN])
-        completion_max_price = peak_price - ((peak_price - X) * completion_retraces[constants.MAX])
-
-    else:
-        completion_min_price = peak_price + ((X - peak_price) * completion_retraces[constants.MIN])
-        completion_max_price = peak_price + ((X - peak_price) * completion_retraces[constants.MAX])
-    return completion_min_price, completion_max_price
-
-
-def set_CD_leg_extensions(pattern):
-    """
-
-    """
-    A = pattern.y[-4]
-    B = pattern.y[-3]
-    C = pattern.y[-2]
-    move = abs(A - B)
-
-    ext = [e for e in sorted(constants.EXTENSIONS)]
-    if pattern.bullish:
-        abc_extensions = [C - (e * move) for e in ext]
-        # self.hop = self.abc_extensions[-1]
-        for e in abc_extensions:
-            if e < pattern.completion_max_price:
-                pattern.hop = e
-                break
-    else:
-        abc_extensions = [C + (e * move) for e in ext]
-        # self.hop = self.abc_extensions[-1]
-        for e in abc_extensions:
-            if e > pattern.completion_max_price:
-                hop = e
-                break
-    return abc_extensions, hop
-
-
 def line_slope(y2: float, y1: float, x2: int, x1: int) -> float:
+    """
+    Calculate the slope of a line.
+
+    >>> utils.line_slope(2, 1, 2, 1)
+    1.0
+    >>> utils.line_slope(2, 1, 3, 1)
+    0.5
+
+    :param y2: The y2 value.
+    :param y1: The y1 value.
+    :param x2: The x2 value.
+    :param x1: The x1 value.
+    :return: The slope of the line.
+    """
     y_diff = y2 - y1
     if bool(y_diff):
         return y_diff / (x2 - x1)
@@ -241,36 +228,18 @@ def find_peaks(data, comparator, axis=0, order=1, mode='clip'):
     Calculate the relative extrema of `data`.
     Relative extrema are calculated by finding locations where
     ``comparator(data[n], data[n+1:n+order+1])`` is True.
-    Parameters
-    ----------
-    data : ndarray
-        Array in which to find the relative extrema.
-    comparator : callable
-        Function to use to compare two data points.
-        Should take two arrays as arguments.
-    axis : int, optional
-        Axis over which to select from `data`. Default is 0.
-    order : int, optional
-        How many points on each side to use for the comparison
-        to consider ``comparator(n,n+x)`` to be True.
-    mode : str, optional
-        How the edges of the vector are treated. 'wrap' (wrap around) or
-        'clip' (treat overflow as the same as the last (or first) element).
-        Default 'clip'. See numpy.take.
-    Returns
-    -------
-    extrema : ndarray
-        Boolean array of the same shape as `data` that is True at an extrema,
-        False otherwise.
-    See also
-    --------
-    argrelmax, argrelmin
-    Examples
-    --------
+
     >>> import numpy as np
     >>> testdata = np.array([1,2,3,2,1])
     >>> self.find_peaks(testdata, np.greater, axis=0)
     array([False, False,  True, False, False], dtype=bool)
+
+    :param data: The data to search for peaks.
+    :param comparator: The comparison function.
+    :param axis: The axis to calculate along.
+    :param order: The order of the peak.
+    :param mode: The mode to use.
+    :return: The relative extrema.
     """
     if (int(order) != order) or (order < 1):
         raise ValueError('Order must be an int >= 1')
