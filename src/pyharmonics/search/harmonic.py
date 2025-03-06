@@ -218,7 +218,7 @@ class HarmonicSearch:
 
     def search(self, limit_to=-1):
         """
-        Search for harmonic patterns in the technical data.
+        Search for harmonic patterns in the technical data. These are fully formed patterns.
 
         >>> h = HarmonicSearch(t)
 
@@ -228,7 +228,8 @@ class HarmonicSearch:
         Search for patterns that complete within the most recent 3 peaks
         >>> h.search(limit_to=3)
 
-        :param int limit_to: The number of peaks to search.
+        :param int limit_to: Limit to patterns that completed in the last n candles. ( This speeds up the search )
+            Should be a positive integer.  Negative values search teh entire space.
         """
         self._formed = {constants.XABCD: [], constants.ABCD: [], constants.ABC: []}
         if limit_to > -1:
@@ -366,9 +367,10 @@ class HarmonicSearch:
         >>> h.forming()
         >>> h.get_patterns(formed=False)
 
-        :param int limit_to: The number of peaks to search.
+        :param int limit_to: Limits to patterns that whos CD leg is projected to form in the last n candles.
         :param float percent_c_to_d: The percentage of the pattern that must be
-            complete from C to D.
+            complete from C to D. .8 means patterns that are 80% formed. .95 would produce
+            fewer results as teh patterns would have to reach 95% completion.
         """
         self._forming = {constants.XABCD: [], constants.ABCD: [], constants.ABC: []}
         if limit_to > -1:

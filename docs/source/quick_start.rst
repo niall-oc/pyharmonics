@@ -1,5 +1,5 @@
-Quick Guide
-===========
+Quick functions
+===============
 
 .. code-block:: python
 

@@ -24,7 +24,7 @@ See all harmonic patterns.
 .. code-block:: python
        
   >>> p = Plotter(t, 'BTCUSDT', b.HOUR_1)
-  >>> p.add_matrix_plots(m.get_patterns())
+  >>> p.add_harmonic_plots(m.get_patterns())
   >>> p.show()
 
 You will see something like this.
@@ -36,18 +36,18 @@ See all forming patterns.
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. code-block:: python
        
-  >>> m = MatrixSearch(t)
+  >>> m = harmonicSearch(t)
   >>> m.forming()
   >>> p = Plotter(t, 'BTCUSDT', b.HOUR_1)
-  >>> p.add_matrix_plots(m.get_patterns(formed=False))
+  >>> p.add_harmonic_plots(m.get_patterns(formed=False))
   >>> p.show()
 
 
-Position add_matrix_plots
--------------------------
+Position Adding harmonic plots
+------------------------------
 .. code-block:: python
 
-  >>> m = MatrixSearch(t)
+  >>> m = HarmonicSearch(t)
   >>> m.search()
   >>> patterns = m.get_patterns(family=m.XABCD)
   >>> pattern = patterns[m.XABCD][0]
