@@ -3,8 +3,15 @@ from plotly.subplots import make_subplots
 import plotly.io as pio
 
 class OptionPlotter:
+    """
+    A class to plot option data.
+    """
     def __init__(self, yo, expiry):
         """
+        Constructor for OptionPlotter.
+
+        >>> p = OptionPlotter(yo, expiry)
+
         :param pyharmonics.marketdata.YahooOptions yo: Option chain data for an asset
         :param str expiry: Must be one of the expiry dates in yo.ticker.options
         """
@@ -39,6 +46,9 @@ class OptionPlotter:
         self.set_main_plot()
 
     def set_main_plot(self):
+        """
+        Set the main plot for the option data.
+        """
         self.main_plot = make_subplots(
             rows=2, cols=2, shared_xaxes=False,
             vertical_spacing=0.1,
@@ -74,6 +84,18 @@ class OptionPlotter:
         self.main_plot.update_xaxes(title_text='Forward looking pain', row=1, col=2)
 
     def plot_pain(self, row, col):
+        """
+        Plot the forward looking pain for the options.
+        This refers to the increasing losses the writer of the options will incur as the price moves away from the strike price.
+        This happens when the writer of the option will have to buy or sell the underlying asset at a loss to cover the options at expiry.
+
+        This often results in the price of the underlying asset moving towards the option strike price as the expiry date approaches.
+
+        >>> p.plot_pain(1, 2)
+
+        :param int row: The row to plot the pain.
+        :param int col: The column to plot the pain.
+        """
         self.main_plot.add_trace(
             go.Scatter(
                 mode='lines+markers',
@@ -98,6 +120,15 @@ class OptionPlotter:
         )
 
     def plot_losses(self, row, col):
+        """
+        Plot the losses for the options.
+        This is the balance of losses for the market maker as the price moves away from the strike price.
+
+        >>> p.plot_losses(2, 1)
+
+        :param int row: The row to plot the losses.
+        :param int col: The column to plot the losses.
+        """
         self.main_plot.add_trace(
             go.Scatter(
                 mode='lines+markers',
@@ -111,6 +142,18 @@ class OptionPlotter:
         )
 
     def plot_price(self, price, label, against, row, col, height=0.8):
+        """
+        Plot the price for the options.
+
+        >>> p.plot_price(price, label, against, 1, 1)
+
+        :param float price: The price to plot.
+        :param str label: The label for the price.
+        :param str against: The trend to plot against.
+        :param int row: The row to plot the price.
+        :param int col: The column to plot the price.
+        :param float height: The height of the price line.
+        """
         h = (max(self.options.calls[against]) + max(self.options.puts[against])) * height / 2
         self.main_plot.add_trace(
             go.Scatter(
@@ -126,6 +169,15 @@ class OptionPlotter:
         )
 
     def plot_trend(self, trend, row, col):
+        """
+        Plot the trend for the options.
+
+        >>> p.plot_trend('volume', 1, 1)
+
+        :param str trend: The trend to plot.
+        :param int row: The row to plot the trend.
+        :param int col: The column to plot the trend.
+        """
         self.main_plot.add_trace(
             go.Scatter(
                 mode='lines+markers',
@@ -150,16 +202,48 @@ class OptionPlotter:
         )
 
     def show(self):
+        """
+        Show.
+        """
         self.main_plot.show()
 
     def save_plot_image(self, location, dpi=600):
+        """
+        Save the plot image.
+        This is useful for people who want to post the image on social media or a website.
+
+        >>> p.save_plot_image('option_plot.png')
+
+        :param str location: The location to save the image.
+        :param int dpi: The resolution of the image.
+        """
         pio.write_image(self.main_plot, f"{location}", width=4 * dpi, height=2 * dpi, scale=1)
 
     def to_image(self, dpi=600):
+        """
+        Convert the plot to an image.
+        This is useful for people who want to send the image over a HTTP request.
+        The image is returned as a base64 encoded string.
+
+        >>> p.to_image()
+        >>> p.to_image(dpi=300)
+
+        :param int dpi: The resolution of the image.
+        """
         return pio.to_image(self.main_plot, width=4 * dpi, height=2 * dpi, scale=1)
 
 class OptionSurface:
+    """
+    A class to plot option data as a surface plot. this is a 3D plot.
+    """
     def __init__(self, yo):
+        """
+        Constructor for OptionSurface.
+
+        >>> p = OptionSurface(yo)
+
+        :param pyharmonics.marketdata.YahooOptionData yo: Option chain data for an asset
+        """
         self.yo = yo
         self.fonts = dict(
             font=dict(
@@ -175,6 +259,9 @@ class OptionSurface:
             self.put_strikes = self.put_strikes | set(options.puts['strike'])
 
     def set_main_plot(self):
+        """
+        Set the main plot for the option data.
+        """
         self.main_plot = go.Figure(
             go.Surface(
                 contours={
@@ -213,10 +300,33 @@ class OptionSurface:
         )
 
     def show(self):
+        """
+        Show
+        """
         self.main_plot.show()
 
     def save_plot_image(self, location, dpi=600):
+        """
+        Save the plot image.
+        This is useful for people who want to post the image on social media or a website."
+
+        >>> p.save_plot_image('option_plot.png')
+        >>> p.save_plot_image('option_plot.png', dpi=300)
+
+        :param str location: The location to save the image.
+        :param int dpi: The resolution of the image.
+        """
         pio.write_image(self.main_plot, f"{location}", width=4 * dpi, height=2 * dpi, scale=1)
 
     def to_image(self, dpi=600):
+        """
+        Convert the plot to an image.
+        This is useful for people who want to send the image over a HTTP request.
+        The image is returned as a base64 encoded string.
+
+        >>> p.to_image()
+        >>> p.to_image(dpi=300)
+
+        :param int dpi: The resolution of the image.
+        """
         return pio.to_image(self.main_plot, width=4 * dpi, height=2 * dpi, scale=1)
