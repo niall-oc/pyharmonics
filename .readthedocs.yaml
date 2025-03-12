@@ -1,18 +1,17 @@
 # .readthedocs.yaml
 version: 2
 
-# Set the OS, Python version and other tools you might need
+# Set the OS, Python version, and other tools you might need
 build:
   os: ubuntu-22.04
   tools:
-    python: "3.11"
+    python: "3.11"  # Here we specify the version for the build environment
 
 python:
-  version: "3.11"  # Ensure this is in the correct place without dot notation
   install:
     - method: pip
-      path: .
+      path: .  # Assuming your package is located in the current directory
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
-   configuration: docs/source/conf.py
+  configuration: docs/source/conf.py
