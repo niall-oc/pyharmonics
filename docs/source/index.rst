@@ -140,4 +140,4 @@ etc.
    technicals_guide
    harmonic_search_guide
    plotting_guide
-   modules
+   pyharmonics
