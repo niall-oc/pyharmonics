@@ -851,14 +851,20 @@ class PositionPlotter(PlotterBase):
         Pad the right side of the plot with empty candles.
         This is useful for plotting the future.
         """
-        row = {c: None for c in self.df.columns}
+        row = {c: None for c in self.df.columns}  # Create a row with all NaN values
 
         this_time = final_candle
         data = []
         index = []
+
         for i in range(num_candles):
-            this_time += self.candle_gap
+            this_time += self.candle_gap  # Move forward in time
             index.append(this_time)
-            data.append(row)
+            data.append(row.copy())  # Use copy() to prevent reference issues
+
+        # Create DataFrame with proper columns and index
         pad_df = pd.DataFrame(data, columns=self.df.columns, index=index)
-        self.df = pd.concat([self.df, pad_df])
+        pad_df = pad_df.dropna(axis=1, how='all')
+
+        # Concatenate along rows (axis=0) to add new rows to self.df
+        self.df = pd.concat([self.df, pad_df.astype('float64')], axis=0)

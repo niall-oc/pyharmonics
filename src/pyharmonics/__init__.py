@@ -4,12 +4,12 @@ from .patterns import ABCPattern, ABCDPattern, XABCDPattern
 from .positions import Position
 
 __all__ = (
-    OHLCTechnicals,
-    Technicals,
-    PositionPlotter,
-    HarmonicPlotter,
-    ABCPattern,
-    ABCDPattern,
-    XABCDPattern,
-    Position
+    'OHLCTechnicals',
+    'Technicals',
+    'PositionPlotter',
+    'HarmonicPlotter',
+    'ABCPattern',
+    'ABCDPattern',
+    'XABCDPattern',
+    'Position'
 )

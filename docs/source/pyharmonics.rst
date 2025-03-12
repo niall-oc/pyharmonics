@@ -1,4 +1,4 @@
-pyharmonics
+API Reference
 ===================
 
 Subpackages
